@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="Polizalos.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <CursorPos X="3"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_App.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="6595"/>
+        <CursorPos X="14" Y="6621"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="3669"/>
+        <CursorPos Y="3696"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="11909"/>
+        <CursorPos X="15" Y="11935"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Basis.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="3"/>
+        <CursorPos Y="35"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Beleg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="3"/>
+        <CursorPos Y="35"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Buch.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="3"/>
+        <CursorPos Y="35"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_LokaleDaten.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="3"/>
+        <CursorPos X="24" Y="14"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_OLAP.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="3"/>
+        <CursorPos X="24" Y="14"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Funktionen_Transaktion.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="3"/>
+        <CursorPos X="21" Y="14"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="28">
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="1559" Column="14" TopLine="1546"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="1829" Column="13" TopLine="1818"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="2282" Column="14" TopLine="2256"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="2356" Column="14" TopLine="2330"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="2651" Column="14" TopLine="2625"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="2709" Column="14" TopLine="2683"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="3447" TopLine="3430"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="3683" TopLine="3656"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Artikel.pas"/>
+        <Caret Line="3696" TopLine="3669"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="38" TopLine="21"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="304" TopLine="278"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="407" TopLine="381"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="416" TopLine="390"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="1351" TopLine="1332"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="1545" TopLine="1518"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="8163" TopLine="8136"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="8834" Column="15" TopLine="8808"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9034" Column="15" TopLine="9008"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9101" Column="25" TopLine="9075"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9129" Column="23" TopLine="9103"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9136" Column="23" TopLine="9110"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9143" Column="21" TopLine="9117"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9411" Column="13" TopLine="9385"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9702" Column="13" TopLine="9675"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9711" Column="13" TopLine="9684"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="9794" Column="19" TopLine="9767"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="10805" Column="19" TopLine="10778"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="11190" Column="15" TopLine="11164"/>
+      </Position>
+      <Position>
+        <Filename Value="src/Funktionen_Auftrag.pas"/>
+        <Caret Line="11653" Column="15" TopLine="11627"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>
