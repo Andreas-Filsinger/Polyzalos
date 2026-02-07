@@ -1,6 +1,6 @@
 # Polyzalos
-OrgaMon is dead - long live Polyzalos
+OrgaMon¹ is dead - long live Polyzalos²
 
-https://wiki.orgamon.org/index.php?title=Leistungsumfang
+¹) https://wiki.orgamon.org/index.php?title=Leistungsumfang
 
-https://wiki.orgamon.org/index.php?title=Polyzalos
+²) https://wiki.orgamon.org/index.php?title=Polyzalos
