@@ -91,7 +91,7 @@ procedure ensure7zip;
 implementation
 
 uses
- windows, SysUtils,
+ SysUtils, fpchelper,
  anfix, Systemd;
 
 const
@@ -103,8 +103,8 @@ begin
  begin
 
   repeat
-
-    c7zip_app := ProgramFilesDir + '7-zip\7z.exe';
+  // imp pend
+//    c7zip_app := ProgramFilesDir + '7-zip\7z.exe';
     if FileExists(c7zip_app) then
       break;
 

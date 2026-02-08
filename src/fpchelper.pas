@@ -35,16 +35,14 @@ interface
 
 uses
   SysUtils, Classes,
-  {$ifdef MSWINDOWS}
-  Windows, activex,
-  {$endif}
   {$ifndef console}
   Graphics,
   {$endif}
   gettext, DCPcrypt2, DCPmd5;
 
 const
-     PIPE_UNLIMITED_INSTANCES = 255;
+  INVALID_HANDLE_VALUE = -1;
+  PIPE_UNLIMITED_INSTANCES = 255;
      SW_HIDE = 0;
      MOVEFILE_WRITE_THROUGH = 8;
      {$ifdef console}
@@ -422,11 +420,8 @@ function StrHasAlpha(const str: String): boolean;
 procedure RegisterExpectedMemoryLeak(var a);
 
 function GetProgramFilesFolder : string;
-{$ifdef MSWINDOWS}
-
-function GetPersonalFolder : string;
-function GetAppdataFolder : string;
-{$endif}
+function PersonalDataDir : string;
+function GetUserName : string;
 
 function TDCP_hash_FromFile(pHash: TDCP_hash; FileName: string): string; {public}
 function TDCP_hash_FromStrings(pHash : TDCP_hash; Str: TStrings): string;
@@ -440,18 +435,12 @@ type
 implementation
 
 uses
-{$ifdef MSWINDOWS}
-  ShellApi
-{$endif}
-{$ifdef Unix}
   Unix
-{$endif}
-{$ifdef fpc}
-  , fileutil
+  , FileUtil
 {$ifndef console}
 , LCLIntf
 {$endif}
-{$endif};
+ ;
 
 {$IFNDEF DELPHI12}
 {$IFNDEF DELPHI14}
@@ -1044,6 +1033,16 @@ var
 
 var
    dwMode:DWORD ;
+
+   function GetUserName : string;
+   begin
+     result := GetEnvironmentVariable('USER');
+   end;
+
+   function PersonalDataDir : string;
+   begin
+     result := GetEnvironmentVariable('HOME')+ '/';
+   end;
 
 initialization
 

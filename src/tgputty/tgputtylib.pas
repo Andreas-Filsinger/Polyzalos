@@ -482,9 +482,9 @@ begin
      end
   end;
 begin
-  {$ifdef MSWINDOWS}
   Result:=true;
   try
+    {$ifdef MSWINDOWS}
     CheckStructSizes;
     {$else}
     if TGPLH>0 then begin

@@ -102,7 +102,7 @@ implementation
 
 uses
   // Core
-  Windows, SysUtils, IniFiles,
+  SysUtils, IniFiles,
   math,
 
   // OrgaMon - Tools

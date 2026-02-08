@@ -39,18 +39,12 @@ function FotoCompress(FName: string; DestFName: string; kByte: integer; Abweichu
 implementation
 
 uses
-  Windows,
   Messages,
   SysUtils,
   Classes,
   anfix,
   systemd,
-{$ifndef fpc}
-  CCR.Exif.BaseUtils,
-  CCR.Exif,
-{$else}
  dMetadata,
-{$endif}
   globals;
 
 function FotoAufnahmeMoment(FName: string): TDateTime;
@@ -259,7 +253,8 @@ begin
 
   if (cGimpTempFName = '') then
   begin
-    cGimpTempPath := PersonalDataDir + 'GIMP' + '\';
+   // imp pend
+    //cGimpTempPath := PersonalDataDir + 'GIMP' + '\';
     CheckCreateDir(cGimpTempPath);
     cGimpTempFName := cGimpTempPath + 'try-image.jpg';
   end;
@@ -287,8 +282,9 @@ begin
       end;
 
       // 2.6 32Bit-System
-      cGimpExecutePath := ProgramFilesDir + 'GIMP-2.0\bin\gimp-console-2.6.exe';
-      cGimpScriptPath := ProgramFilesDir + 'GIMP-2.0\share\gimp\2.0\scripts\';
+      // imp pend
+     // cGimpExecutePath := ProgramFilesDir + 'GIMP-2.0\bin\gimp-console-2.6.exe';
+     // cGimpScriptPath := ProgramFilesDir + 'GIMP-2.0\share\gimp\2.0\scripts\';
 
     until yet;
   sCallScript := TStringList.Create;

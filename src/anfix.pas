@@ -20,19 +20,11 @@
 *)
 unit anfix;
 
-{$ifdef FPC}
- {$mode objfpc}{$H+}
-{$else}
- {$I jcl.inc}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  windows,
-  shlobj,
-{$ENDIF}
   classes,
   SysUtils;
 
@@ -617,7 +609,7 @@ implementation
 
 uses
 {$IFDEF fpc}
-  DateUtils, LConvEncoding,
+  DateUtils, LConvEncoding, FileUtil,
 {$IFDEF UNIX}
   BaseUnix,
 {$ENDIF}
@@ -694,7 +686,7 @@ begin
   end;
 end;
 
-{$ifdef fpc}
+(*
 
 // Results of Freepascal-FileAge(fn,dt) <> Delphi-FileAge(fn, dt), it differs by
 // 1 second (delphi value is correct) - so automated OrgaMon-Testing fails
@@ -721,7 +713,7 @@ begin
         end;
   end;
 end;
-{$endif}
+*)
 
 function FileDate(FName: string): TAnfixDate;
 var
@@ -3241,11 +3233,7 @@ var
 begin
   if (pos('*', Mask) = 0) and (pos('?', Mask) = 0) then
   begin
-    {$ifdef MSWINDOWS}
-    result := CopyFile(PCHAR(Mask), PCHAR(Dest), false);
-    {$else}
-    result := CopyFile(Mask, Dest, [cffOverwriteFile, cffPreserveTime])
-    {$endif}
+    result := CopyFile(Mask, Dest, [cffOverwriteFile, cffPreserveTime]);
 
     // ready only Source -> Writeable Dest
     if result then

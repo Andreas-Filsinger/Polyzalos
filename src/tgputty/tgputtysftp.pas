@@ -119,6 +119,7 @@ type TGPuttySFTPException=class(Exception);
          procedure SetStat(const AFileName:AnsiString;const Attrs:fxp_attrs);
          procedure SetModifiedDate(const AFileName:AnsiString;const ATimestamp:TDateTime; const isUTC:Boolean);
          procedure SetFileSize(const AFileName:AnsiString;const ASize:Int64);
+         function GetFileSize(const AFileName:AnsiString):Int64;
          procedure SetUnixMode(const AFileName:AnsiString;const AMode:Integer);
          procedure Move(const AFromName,AToName:AnsiString);
          procedure MoveEx(const AFromName,AToName:AnsiString;const MoveFlags:Integer);
@@ -924,6 +925,18 @@ procedure TTGPuttySFTP.SetConnectionTimeoutTicks(const Value: Integer);
 begin
   Fcontext.connectiontimeoutticks:=Value;
   end;
+
+function TTGPuttySFTP.GetFileSize(const AFileName: AnsiString):int64;
+var
+ Attrs:fxp_attrs;
+begin
+  FLastMessages:='';
+  Fcontext.fxp_errtype:=cDummyClearedErrorCode; // "clear" error field
+  if tgsftp_getstat(PAnsiChar(AFileName),@Attrs,@Fcontext) then
+    result := Attrs.size
+  else
+    result := -1
+end;
 
 procedure TTGPuttySFTP.SetFileSize(const AFileName: AnsiString; const ASize: Int64);
 var Attrs:fxp_attrs;

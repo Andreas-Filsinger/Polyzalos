@@ -482,7 +482,7 @@ implementation
 
 uses
   // System
-  windows, IniFiles,
+  IniFiles, fpchelper, unix,
   // anfix
   BinLager, html, srvXMLRPC, SolidFTP;
 
@@ -1024,11 +1024,11 @@ begin
     add(cApplicationName + ' Rev. ' + RevToStr(globals.Version));
     add('XMLRPC Rev. ' + RevToStr(cXMLRPC_Version));
     add('ANFiX Rev. ' + RevToStr(VersionAnfix));
-    add(ComputerName);
+    add(GetHostName);
     add(datum + ' ' + uhr8);
     addobject(ActTRN + '.' + cServerFunctions_Meta_CallCount, TXMLRPC_Server.oMetaString);
     add(e_r_Kontext);
-    add(Betriebssystem);
+    add('linux');
   end;
 end;
 
@@ -3172,7 +3172,7 @@ begin
     if (SectionName = '') then
       SectionName := getParam('Id');
     if (SectionName = '') then
-      SectionName := UserName;
+      SectionName := GetUserName;
 
     // ftpuser ist ein Mussfeld dessen Wert aber nicht verwendet wird
     if (ReadString(SectionName, 'ftpuser', '') = '') then
@@ -5185,6 +5185,8 @@ begin
     // Transaktions-Datenverzeichnisse wegsichern danach löschen
     // ACHTUNG: "pAppServicePath" und "BackupDir" müssen auf dem selben Share liegen -
     // sonst funktioniert MoveFileEx nicht
+    // imp pend
+    (*
     if not(MoveFileEx(
       { } pchar(pAppServicePath + TAN),
       { } pchar(BackupDir + cTAN_BackupPath + TAN),
@@ -5193,6 +5195,7 @@ begin
      log(cERRORText + ' 4062: Verzeichnis '+TAN+' konnte nicht in die Sicherung verschoben werden!');
      continue;
     end;
+    *)
 
     if DirExists(BackupDir + cTAN_BackupPath + TAN  + PathDelim) then
     begin

@@ -16,7 +16,7 @@ unit OpenOfficePDF;
 interface
 
 uses
-  ComObj, Variants, sysutils;
+  Variants, sysutils;
 
 const
   cPDF_Extension = '.pdf';
@@ -49,7 +49,7 @@ procedure MakePDF(InFileName, OutFileName: string);
 implementation
 
 uses
-  ActiveX, globals;
+   globals;
 
 { TOOoWriter }
 
@@ -70,7 +70,8 @@ end;
 function TOOoWriter.Connect: boolean;
 begin
   if VarIsEmpty(fOpenOffice) then
-    fOpenOffice := CreateOleObject('com.sun.star.ServiceManager');
+  // imp pend
+//    fOpenOffice := CreateOleObject('com.sun.star.ServiceManager');
 
   fConnected := not(VarIsEmpty(fOpenOffice) or VarIsNull(fOpenOffice));
   Result := fConnected;
@@ -79,12 +80,14 @@ end;
 constructor TOOoWriter.Create;
 begin
   inherited;
-  CoInitialize(nil);
+  // imp pend
+  //CoInitialize(nil);
 end;
 
 destructor TOOoWriter.Destroy;
 begin
-  CoUninitialize;
+   // imp pend
+  // CoUninitialize;
   inherited;
 end;
 

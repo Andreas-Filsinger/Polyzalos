@@ -1,30 +1,40 @@
 ﻿{
-  |      ___                  __  __
-  |     / _ \ _ __ __ _  __ _|  \/  | ___  _ __
-  |    | | | | '__/ _` |/ _` | |\/| |/ _ \| '_ \
-  |    | |_| | | | (_| | (_| | |  | | (_) | | | |
-  |     \___/|_|  \__, |\__,_|_|  |_|\___/|_| |_|
-  |               |___/
   |
-  |    Copyright (C) 2016 - 2022  Andreas Filsinger
+  |  Polyzalos, FKA OrgaMon
+  |  https://wiki.orgamon.org/
+  |  SPDX-License-Identifier: MIT
   |
-  |    This program is free software: you can redistribute it and/or modify
-  |    it under the terms of the GNU General Public License as published by
-  |    the Free Software Foundation, either version 3 of the License, or
-  |    (at your option) any later version.
+  |               ____       _                _
+  |              |  _ \ ___ | |_   _ ______ _| | ___  ___
+  |              | |_) / _ \| | | | |_  / _` | |/ _ \/ __|
+  |              |  __/ (_) | | |_| |/ / (_| | | (_) \__ \
+  |              |_|   \___/|_|\__, /___\__,_|_|\___/|___/
+  |                            |___/
   |
-  |    This program is distributed in the hope that it will be useful,
-  |    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  |    GNU General Public License for more details.
+  |  Copyright (C) 2016 - 2026  Andreas Filsinger
   |
-  |    You should have received a copy of the GNU General Public License
-  |    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  |  Permission is hereby granted, free of charge, to any person obtaining a copy
+  |  of this software and associated documentation files (the "Software"), to deal
+  |  in the Software without restriction, including without limitation the rights
+  |  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  |  copies of the Software, and to permit persons to whom the Software is
+  |  furnished to do so, subject to the following conditions:
   |
-  |    https://wiki.orgamon.org/
+  |  The above copyright notice and this permission notice shall be included in all
+  |  copies or substantial portions of the Software.
+  |
+  |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  |  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  |  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  |  SOFTWARE.
   |
 }
 unit Identitaet;
+
+{$mode delphi}
 
 interface
 
@@ -42,14 +52,13 @@ procedure RunAsMagneto;
 implementation
 
 uses
-  // Pascal-Core
+  unix,
+  math,
   SysUtils,
   Classes,
-{$ifndef FPC}
-  math,
-{$endif}
 
   // Tools
+  fpchelper,
   anfix,
   c7zip,
   CaretakerClient,
@@ -57,7 +66,7 @@ uses
   srvXMLRPC,
   binlager,
   systemd,
-  windows,
+
 
   // DB
 {$IFNDEF FPC}
@@ -115,16 +124,16 @@ begin
     // patch iDataBaseName to help to avoid
     if IsParam('-cl') then
     begin
-      if (pos(ComputerName + ':', iDataBaseName)=1) or
-         (ComputerName=iDataBaseHost) then
+      if (pos(GetHostName + ':', iDataBaseName)=1) or
+         (GetHostName=iDataBaseHost) then
       begin
         iDataBaseName := copy(iDataBaseName, succ(pos(':', iDataBaseName)), MaxInt);
         writeln('INFO: i run on the same machine as the database-server -> trying to avoid TCP connection ...');
       end;
     end else
     begin
-      if (pos(ComputerName + ':', iDataBaseName)=1) or
-         (ComputerName=iDataBaseHost) then
+      if (pos(GetHostName + ':', iDataBaseName)=1) or
+         (GetHostName=iDataBaseHost) then
       begin
         iDataBaseName := 'localhost' + copy(iDataBaseName, pos(':', iDataBaseName), MaxInt);
         writeln('INFO: i run on the same machine as the database-server -> trying to establish a tcp-connection to localhost:  ...');
@@ -175,7 +184,7 @@ begin
     end;
 
     writeln(e_r_fbClientVersion);
-    write(anfix.UserName + ' oeffnet ' + string(UserName) + '@' + string(iDataBaseName) + ' ... ');
+    write(GetUserName + ' oeffnet ' + string(GetUserName) + '@' + string(iDataBaseName) + ' ... ');
     Connect;
     if not(Connected) then
     begin
@@ -188,7 +197,7 @@ begin
   sBearbeiter := e_r_Bearbeiter;
   if (sBearbeiter < cRID_FirstValid) then
   begin
-    writeln(cERRORText + ' Bearbeiter "' + anfix.UserName + '" ist noch nicht angelegt!');
+    writeln(cERRORText + ' Bearbeiter "' + GetUserName + '" ist noch nicht angelegt!');
     halt(1);
   end;
   sBearbeiterKurz :=
@@ -438,7 +447,7 @@ begin
   Log(
    {} 'Start am ' + long2date(LetzerTagesAbschlussWarAm) +
    {} ' um ' + secondstostr(LetzerTagesAbschlussWarUm) +
-   {} ' h auf ' + ComputerName);
+   {} ' h auf ' + GetHostName);
   ErrorCount := 0;
 
   sAktions:= TStringList.create;
@@ -727,7 +736,7 @@ begin
   ErrorCount := 0;
   ActionNo := -1;
   Log('Start am ' + long2date(LetzteTagwacheWarAm) + ' um ' + secondstostr(LetzteTagwacheWarUm) + ' h auf ' +
-      ComputerName);
+      GetHostName);
 
   sAktions := TStringList.create;
   with sAktions do
@@ -834,7 +843,7 @@ begin
     DebugMode := anfix.DebugMode;
     DiagnosePath := globals.DiagnosePath;
     TimingStats := IsParam('-at');
-    LogContext := ComputerName + '-' + inttostr(DefaultPort);
+    LogContext := GetHostName + '-' + inttostr(DefaultPort);
 
     if TimingStats then
       writeln('Performance-Log aktiv: ' + LogContext);
@@ -867,7 +876,7 @@ begin
     BasePlug := e_r_BasePlug;
     write(
       { } 'Starte ' +
-      { } ComputerName + ':' + iXMLRPCPort +
+      { } GetHostName + ':' + iXMLRPCPort +
       { } ' im Kontext ' +
       { } BasePlug[25] + ' ... ');
     BasePlug.free;
@@ -964,7 +973,7 @@ begin
       begin
         DefaultPort := JonDa.pPort;
         DiagnosePath := globals.DiagnosePath;
-        LogContext := ComputerName + '-' + inttostr(DefaultPort);
+        LogContext := GetHostName + '-' + inttostr(DefaultPort);
 
         DebugMode := anfix.DebugMode;
         TimingStats := IsParam('-at');
@@ -978,7 +987,7 @@ begin
         AddMethod('ProceedTAN', JonDa.proceed);
 
         // Starten
-        write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');
+        write('Aktiviere ' + GetHostName + ':' + inttostr(DefaultPort) + '  ... ');
         active := true;
 
         writeln('OK');
@@ -1108,7 +1117,7 @@ begin
       {$endif fpc}
     end;
     writeln(
-     {} Modus + '@' + noblank(Betriebssystem) + ' ' +
+     {} Modus + '@' + noblank('linux') + ' ' +
      {} iMandant +
      {} ' (' + MyProgramPath + ')');
 
@@ -1219,7 +1228,7 @@ begin
       DefaultPort := 3040;
 
     DiagnosePath := globals.DiagnosePath;
-    LogContext := ComputerName + '-' + inttostr(DefaultPort);
+    LogContext := GetHostName + '-' + inttostr(DefaultPort);
 
     DebugMode := anfix.DebugMode;
     TimingStats := IsParam('-at');
@@ -1231,7 +1240,7 @@ begin
     AddMethod('Open', Magneto.rpc_e_w_Magneto);
 
     // Starten
-    write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');
+    write('Aktiviere ' + GetHostName + ':' + inttostr(DefaultPort) + '  ... ');
     active := true;
     writeln('OK');
   end;

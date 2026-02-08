@@ -1,27 +1,35 @@
 ﻿{
-  |      ___                  __  __
-  |     / _ \ _ __ __ _  __ _|  \/  | ___  _ __
-  |    | | | | '__/ _` |/ _` | |\/| |/ _ \| '_ \
-  |    | |_| | | | (_| | (_| | |  | | (_) | | | |
-  |     \___/|_|  \__, |\__,_|_|  |_|\___/|_| |_|
-  |               |___/
   |
-  |    Copyright (C) 2007 - 2024  Andreas Filsinger
+  |  Polyzalos, FKA OrgaMon
+  |  https://wiki.orgamon.org/
+  |  SPDX-License-Identifier: MIT
   |
-  |    This program is free software: you can redistribute it and/or modify
-  |    it under the terms of the GNU General Public License as published by
-  |    the Free Software Foundation, either version 3 of the License, or
-  |    (at your option) any later version.
+  |               ____       _                _
+  |              |  _ \ ___ | |_   _ ______ _| | ___  ___
+  |              | |_) / _ \| | | | |_  / _` | |/ _ \/ __|
+  |              |  __/ (_) | | |_| |/ / (_| | | (_) \__ \
+  |              |_|   \___/|_|\__, /___\__,_|_|\___/|___/
+  |                            |___/
   |
-  |    This program is distributed in the hope that it will be useful,
-  |    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  |    GNU General Public License for more details.
+  |  Copyright (C) 2007 - 2026  Andreas Filsinger
   |
-  |    You should have received a copy of the GNU General Public License
-  |    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  |  Permission is hereby granted, free of charge, to any person obtaining a copy
+  |  of this software and associated documentation files (the "Software"), to deal
+  |  in the Software without restriction, including without limitation the rights
+  |  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  |  copies of the Software, and to permit persons to whom the Software is
+  |  furnished to do so, subject to the following conditions:
   |
-  |    https://wiki.orgamon.org/
+  |  The above copyright notice and this permission notice shall be included in all
+  |  copies or substantial portions of the Software.
+  |
+  |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  |  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  |  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  |  SOFTWARE.
   |
 }
 unit globals;
@@ -1804,10 +1812,12 @@ end;
 
 procedure patchPath(var s: string);
 begin
-  ersetze('{app}', ProgramFilesDir, s);
+  // imp pend
+  //  ersetze('{app}', ProgramFilesDir, s);
   ersetze('{exe}', MyApplicationPath, s);
   ersetze('{own}', EigeneOrgaMonDateienPfad, s);
-  ersetze('{doc}', PersonalDataDir, s);
+  // imp pend
+//  ersetze('{doc}', PersonalDataDir, s);
   ersetze('{org}', MyProgramPath, s);
   ersetze('\.\', '\', s);
 end;
@@ -2388,7 +2398,7 @@ sBootSequence := TStringList.create;
 // OrgaMon
 MyApplicationPath := ExtractFilePath(ParamStr(0));
 MyProgramPath := MyApplicationPath;
-EigeneOrgaMonDateienPfad := PersonalDataDir + cApplicationName + '\';
+EigeneOrgaMonDateienPfad := PersonalDataDir + cApplicationName + DirectorySeparator;
 
 // Namespace;Bad;Color;Priorität
 
@@ -2405,34 +2415,34 @@ StartDebug(iDataBaseName);
 StartDebug(MyProgramPath);
 
 //
-DiagnosePath := MyProgramPath + 'Diagnose\';
+DiagnosePath := MyProgramPath + 'Diagnose' + DirectorySeparator;
 SolidFTP.SolidFTP_LogDir := DiagnosePath;
 anfix.DebugLogPath := DiagnosePath;
 
-WebDir := MyProgramPath + 'Web Veröffentlichung\';
-SearchDir := MyProgramPath + 'SuchIndex\';
-CDRAusgabe := MyProgramPath + 'CD-R\Noten\';
-AnwenderPath := MyProgramPath + 'Anwender\' + UserName + '\';
-ETFLager := MyProgramPath + 'Creator\Zwischenlager\';
-DatensicherungPath := MyProgramPath + 'Datensicherung\';
-SoundPath := MyProgramPath + 'Sounds\';
+WebDir := MyProgramPath + 'Web Veröffentlichung' + DirectorySeparator;
+SearchDir := MyProgramPath + 'SuchIndex' + DirectorySeparator;
+CDRAusgabe := MyProgramPath + 'CD-R\Noten' + DirectorySeparator;
+AnwenderPath := MyProgramPath + 'Anwender' + DirectorySeparator + GetUserName + DirectorySeparator;
+ETFLager := MyProgramPath + 'Creator' + DirectorySeparator + 'Zwischenlager' + DirectorySeparator;
+DatensicherungPath := MyProgramPath + 'Datensicherung' + DirectorySeparator;
+SoundPath := MyProgramPath + 'Sounds' + DirectorySeparator;
 SystemPath := MyProgramPath + 'System';
 Geld.iSystemPath := SystemPath;
-UpdatePath := MyProgramPath + 'Updates\';
-WordPath := MyProgramPath + 'Word\';
-ProtokollePath := MyProgramPath + 'Protokolle\';
+UpdatePath := MyProgramPath + 'Updates' + DirectorySeparator;
+WordPath := MyProgramPath + 'Word' + DirectorySeparator;
+ProtokollePath := MyProgramPath + 'Protokolle' + DirectorySeparator;
 {$ifndef CONSOLE}
  ContextPath := ApplicationDataDir + cApplicationName + '\Context\' + iMandant + '\';
 {$endif}
-MDEPath := MyProgramPath + 'MonDa\';
+MDEPath := MyProgramPath + 'MonDa' + DirectorySeparator;
 HtmlVorlagenPath := MyProgramPath + cHTMLTemplatesDir;
-AuftragMobilServerPath := MyProgramPath + 'MonDaServer\';
-WebPath := MyProgramPath + 'Intranet\';
-SchemaPath := MyProgramPath + 'Schemen\';
-RohstoffePath := MyProgramPath + 'Rohstoffe\';
-ImportePath := MyProgramPath + 'Importe\';
-//cCareTakerDiagnosePath := MyProgramPath + 'CareTaker\';
-KassePath := MyProgramPath + 'Kasse\';
+AuftragMobilServerPath := MyProgramPath + 'MonDaServer' + DirectorySeparator;
+WebPath := MyProgramPath + 'Intranet' + DirectorySeparator;
+SchemaPath := MyProgramPath + 'Schemen' + DirectorySeparator;
+RohstoffePath := MyProgramPath + 'Rohstoffe' + DirectorySeparator;
+ImportePath := MyProgramPath + 'Importe' + DirectorySeparator;
+//cCareTakerDiagnosePath := MyProgramPath + 'CareTaker' + DirectorySeparator;
+KassePath := MyProgramPath + 'Kasse' + DirectorySeparator;
 
 StartDebug('CheckCreate.begin');
 

@@ -212,7 +212,6 @@ uses
   JclSynch,
   System.Types,
 {$ENDIF}
-  Windows,
   SysUtils;
 
 const
@@ -2072,10 +2071,11 @@ end; { TGpInt64List.Delete }
   @returns Pointer to the byte immediately after the end of dumped data.
   @since   2006-09-20
 }
+
 function TGpInt64List.Dump(baseAddr: pointer): pointer;
 var
   iList: integer;
-  pList: PLargeInteger;
+  pList: PInt64;
 begin
   pList := baseAddr;
   pList^ := Count;
@@ -2342,7 +2342,7 @@ function TGpInt64List.Restore(baseAddr: pointer): pointer;
 var
   iList: integer;
   numItems: integer;
-  pList: {$IFDEF GpLists_RequiresD6CompilerHack} PInteger64 {$ELSE} PLargeInteger {$ENDIF};
+  pList: PInt64;
 begin
   pList := baseAddr;
   numItems := integer(pList^);

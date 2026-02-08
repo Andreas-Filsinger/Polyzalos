@@ -14,11 +14,9 @@ interface
 {$endif}
 
 uses
- Windows, SysUtils, StrUtils,
+ SysUtils, StrUtils,
  Classes, DateUtils,
- {$ifdef fpc}
  fpchelper,
- {$endif}
  anfix;
 
 function TXStrToInt(const Str: AnsiString; AbsValue: Boolean = False): Integer;
@@ -1658,7 +1656,8 @@ begin
     if FHashItems = nil then
     begin
       FHashItems := AllocMem(FHashSize * sizeof(TTXStringListHashItem));
-      ZeroMemory(FHashItems, FHashSize * sizeof(TTXStringListHashItem));
+      //imp pend
+      //ZeroMemory(FHashItems, FHashSize * sizeof(TTXStringListHashItem));
     end;
 
     hash := HashFunc(Str);
@@ -2156,7 +2155,8 @@ begin
   FEntities.Hashsize := 1024;
 
   FCharacter := AllocMem(65536 * sizeof(TTXXMLEntitiesItem));
-  ZeroMemory(FCharacter, 65536 * sizeof(TTXXMLEntitiesItem));
+  //imp pend
+  //ZeroMemory(FCharacter, 65536 * sizeof(TTXXMLEntitiesItem));
 end;
 
 destructor TTXXMLEntities.Destroy;
@@ -2172,7 +2172,8 @@ end;
 procedure TTXXMLEntities.Clear;
 begin
   Finalize(FCharacter^[0], 65536);
-  ZeroMemory(FCharacter, 65536 * sizeof(TTXXMLEntitiesItem));
+  //Imp pend
+  //ZeroMemory(FCharacter, 65536 * sizeof(TTXXMLEntitiesItem));
 
   FEntities.Clear;
 end;
@@ -2414,8 +2415,8 @@ begin
           pres := DestStr;
           inc(pres, result);
         end;
-
-        MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @chr, 1, PWideChar(@wc), 1);
+        //imp pend
+        //MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @chr, 1, PWideChar(@wc), 1);
 
         cc := Cardinal(wc);
 
@@ -2552,7 +2553,10 @@ begin
         begin
           wc := ((Word(chr) and $1F) shl 6) or (Word(Src^) and $3F);
           if wc > 256 then
-            WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+          begin
+            //imp pend
+            //WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+          end
           else
             chr := AnsiChar(wc);
 
@@ -2610,7 +2614,10 @@ begin
             wc := Word(cc);
 
             if wc > 256 then
-              WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+            begin
+              // imp pend
+              // WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+            end
             else
               chr := AnsiChar(wc);
           end;
@@ -2689,7 +2696,10 @@ begin
         begin
           wc := ((Word(chr) and $F) shl 12) or ((w1 and $3F) shl 6) or (w2 and $3F);
           if wc > 256 then
-            WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+          begin
+            // imp pend
+            //WideCharToMultiByte(CP_ACP, 0, PWideChar(@wc), 1, @chr, 1, nil, nil)
+          end
           else
             chr := AnsiChar(wc);
 
@@ -2790,8 +2800,8 @@ begin
         if (psrc^ > #127) and (Encoding = xeNone) then
         begin
           wr := True;
-
-          MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, psrc, 1, @code, 1);
+          //imp pend
+          //MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, psrc, 1, @code, 1);
 
           if result + 128 >= DestLen then
           begin
@@ -2810,7 +2820,8 @@ begin
             if Pointer(Entities.FCharacter[Cardinal(code)].FName) <> nil then
             begin
               l := Length(Entities.FCharacter[Cardinal(code)].FName);
-              CopyMemory(dest, PAnsiChar(Entities.FCharacter[Cardinal(code)].FName), l);
+              //imp pend
+              //CopyMemory(dest, PAnsiChar(Entities.FCharacter[Cardinal(code)].FName), l);
             end
             else
             begin
@@ -2821,7 +2832,8 @@ begin
               str := IntToStr(Integer(code));
 
               l := Length(str);
-              CopyMemory(dest, PAnsiChar(str), l);
+              //imp pend
+              //CopyMemory(dest, PAnsiChar(str), l);
             end;
           end
           else
@@ -2833,7 +2845,8 @@ begin
             str := IntToStr(Integer(code));
 
             l := Length(str);
-            CopyMemory(dest, PAnsiChar(str), l);
+            //imp pend
+            //CopyMemory(dest, PAnsiChar(str), l);
           end;
 
           inc(dest, l);
@@ -2864,7 +2877,8 @@ begin
             if Pointer(Entities.FCharacter[Cardinal(psrc^)].FName) <> nil then
             begin
               l := Length(Entities.FCharacter[Cardinal(psrc^)].FName);
-              CopyMemory(dest, PAnsiChar(Entities.FCharacter[Cardinal(psrc^)].FName), l);
+              //imp pend
+              //CopyMemory(dest, PAnsiChar(Entities.FCharacter[Cardinal(psrc^)].FName), l);
             end
             else
             begin
@@ -2875,7 +2889,8 @@ begin
               str := IntToStr(Integer(psrc^));
 
               l := Length(str);
-              CopyMemory(dest, PAnsiChar(str), l);
+              // imp pend
+              //CopyMemory(dest, PAnsiChar(str), l);
             end;
           end
           else
@@ -2887,7 +2902,8 @@ begin
             str := IntToStr(Integer(psrc^));
 
             l := Length(str);
-            CopyMemory(dest, PAnsiChar(str), l);
+            // imp pend
+            //CopyMemory(dest, PAnsiChar(str), l);
           end;
 
           inc(dest, l);
@@ -3050,8 +3066,8 @@ begin
                 dest := DestStr;
                 inc(dest, result);
               end;
-
-              CopyMemory(dest, start, c);
+               //imp pend
+              //CopyMemory(dest, start, c);
               inc(dest, c);
               inc(result, c);
             end;
@@ -3152,8 +3168,8 @@ begin
                   dest := DestStr;
                   inc(dest, result);
                 end;
-
-                CopyMemory(Dest, entstart, c);
+                  //imp pend
+                //CopyMemory(Dest, entstart, c);
                 inc(dest, c);
                 inc(result, c);
               end;
@@ -3166,7 +3182,8 @@ begin
             end;
             else
             begin
-              WideCharToMultiByte(CP_ACP, 0, @code, 1, @rchr, 1, nil, nil);
+              //imp pend
+              //WideCharToMultiByte(CP_ACP, 0, @code, 1, @rchr, 1, nil, nil);
               if rchr > #0 then
               begin
                 s := result + 1;
@@ -3256,8 +3273,8 @@ begin
           dest := DestStr;
           inc(dest, result);
         end;
-
-        CopyMemory(dest, start, c);
+        //imp pend
+        //CopyMemory(dest, start, c);
         inc(dest, c);
         inc(result, c);
       end;
@@ -4986,9 +5003,15 @@ var
     GrowDest(SpaceCount);
 
     if UseTabs then
-      FillMemory(Dest, SpaceCount, 9)
+    begin
+      //imp pend
+      //FillMemory(Dest, SpaceCount, 9)
+    end
     else
-      FillMemory(Dest, SpaceCount, 32);
+    begin
+      // imp pend
+      //FillMemory(Dest, SpaceCount, 32);
+    end;
 
     inc(Dest, SpaceCount);
     inc(DestLen, SpaceCount);
@@ -4999,7 +5022,8 @@ var
     if StrLen > 0 then
     begin
       GrowDest(StrLen);
-      CopyMemory(Dest, PStr, StrLen);
+      //imp pend
+      //CopyMemory(Dest, PStr, StrLen);
       inc(Dest, StrLen);
       inc(DestLen, StrLen);
     end;
@@ -5031,13 +5055,15 @@ var
       result := DestLen;
       tmp := DestStr;
       inc(tmp, Position);
-      CopyMemory(Dest, tmp, Len);
+      //imp pend
+      //CopyMemory(Dest, tmp, Len);
       inc(Dest, Len);
       inc(DestLen, Len);
     end
     else
     begin
-      CopyMemory(Dest, PNodeName, NodeNameStrLen);
+      //imp pend
+      //CopyMemory(Dest, PNodeName, NodeNameStrLen);
       result := DestLen;
       inc(Dest, NodeNameStrLen);
       inc(DestLen, NodeNameStrLen);
@@ -5064,7 +5090,8 @@ var
         begin
           l := Length(XMLElement.FAttributes.FItems[i].FString);
           GrowDest(l);
-          CopyMemory(Dest, PAnsiChar(XMLElement.FAttributes.FItems[i].FString), l);
+          //imp pend
+          //CopyMemory(Dest, PAnsiChar(XMLElement.FAttributes.FItems[i].FString), l);
           inc(Dest, l);
           inc(DestLen, l);
         end;

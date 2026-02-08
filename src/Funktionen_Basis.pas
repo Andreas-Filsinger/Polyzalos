@@ -181,10 +181,9 @@ procedure EnsureCache_Laender;
 implementation
 
 uses
-  Types, Math, SysUtils,
+  Types, Math, SysUtils, unix,
 
   // wegen der Versionsnummern
-{$IFDEF fpc}
   ZClasses,
   ZConnection,
   ZDatasetUtils,
@@ -197,15 +196,6 @@ uses
   // IBX4Lazarus
   IBVersion, IBXServices,
   fpchelper,
-{$ELSE}
-  FlexCel.Core,
-  CCR.Exif.Consts,
-  JclBase,
-  IBOServices,
-  IB_Session,
-  graphics,
-  System.UITypes,
-{$ENDIF}
 {$IFNDEF CONSOLE}
   Datenbank,
 {$ifndef FPC}
@@ -950,9 +940,9 @@ begin
 {$endif}
       { 12 } add(iShopArtikelBilderURL);
       { 13 } add('7zip Rev. ' +  c7zip.Version);
-      { 14 } add(tgputtysftp_Version);
+      { 14 } add({tgputtysftp_Version}'0.83');
       { 15 } add(
-        e_r_Kontext + '@' + ComputerName + ':' + iXMLRPCPort);
+        e_r_Kontext + '@' + GetHostName + ':' + iXMLRPCPort);
       { 16 } add(
         'memcache Rev. ' + RevToStr(memcache.Version) + '@' +
         imemcachedHost);
@@ -976,7 +966,7 @@ begin
       { 25 } add('CCR.Exif Rev. ' + CCR.Exif.Consts.CCRExifVersion);
 {$ENDIF}
       { 26 } add(e_r_Kontext);
-      { 27 } add(Betriebssystem);
+      { 27 } add('linux');
     end;
   end;
   Result.Assign(CacheBasePlug);
@@ -985,7 +975,7 @@ end;
 function e_r_Bearbeiter: integer;
 begin
   Result := e_r_sql('select RID from BEARBEITER where UPPER(USERNAME)=''' +
-    AnsiUpperCase(UserName) + '''');
+    AnsiUpperCase(GetUserName) + '''');
 end;
 
 function e_r_BearbeiterKuerzel(BEARBEITER_R: integer): string;
@@ -1988,15 +1978,15 @@ var
   function localized_parameter(p: string; default : string = ''): string;
   begin
    repeat
-     result := sSystemSettings.Values[p+'.'+UserName+'@'+ComputerName];
+     result := sSystemSettings.Values[p+'.'+GetUserName+'@'+GetHostName];
      if (result<>'') then
       break;
 
-     result := sSystemSettings.Values[p+'.'+UserName];
+     result := sSystemSettings.Values[p+'.'+GetUserName];
      if (result<>'') then
       break;
 
-     result := sSystemSettings.Values[p+'@'+ComputerName];
+     result := sSystemSettings.Values[p+'@'+GetHostName];
      if (result<>'') then
       break;
 
