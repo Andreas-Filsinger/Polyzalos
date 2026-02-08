@@ -7,209 +7,475 @@
       <Unit>
         <Filename Value="Polizalos.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="3"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="34"/>
+        <CursorPos X="11" Y="59"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_App.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="6595"/>
-        <CursorPos X="14" Y="6621"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="456"/>
+        <CursorPos X="29" Y="485"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Artikel.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="3669"/>
-        <CursorPos Y="3696"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="8"/>
+        <CursorPos Y="34"/>
+        <UsageCount Value="26"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Auftrag.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="11909"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="11910"/>
         <CursorPos X="15" Y="11935"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="26"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Basis.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="3"/>
-        <CursorPos Y="35"/>
-        <UsageCount Value="20"/>
+        <CursorPos Y="34"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Beleg.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos Y="35"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="26"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Buch.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="3"/>
-        <CursorPos Y="35"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="5"/>
+        <CursorPos Y="34"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_LokaleDaten.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos X="24" Y="14"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="26"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_OLAP.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos X="24" Y="14"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="26"/>
       </Unit>
       <Unit>
         <Filename Value="src/Funktionen_Transaktion.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos X="21" Y="14"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="26"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/anfix.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="3227"/>
+        <CursorPos Y="3237"/>
+        <UsageCount Value="26"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/fpchelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="26"/>
+        <TopLine Value="1028"/>
+        <CursorPos Y="1044"/>
+        <UsageCount Value="26"/>
+        <Bookmarks Count="1">
+          <Item0 X="6" Y="1039" Left="1" Top="1032" ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/html.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="11"/>
+        <CursorPos Y="34"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Geld.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="26"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/SimplePassword.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="26"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/OrientationConvert.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="15"/>
+        <CursorPos Y="27"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Identitaet.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="32"/>
+        <CursorPos X="9" Y="55"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/systemd.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="23"/>
+        <TopLine Value="128"/>
+        <CursorPos X="19" Y="143"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/WordIndex.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="41"/>
+        <CursorPos X="3" Y="58"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/SolidFTP.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="4"/>
+        <CursorPos Y="34"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/tgputty/tgputtylib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="22"/>
+        <TopLine Value="475"/>
+        <CursorPos X="4" Y="487"/>
+        <UsageCount Value="25"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/tgputty/tgputtysftp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="21"/>
+        <TopLine Value="915"/>
+        <CursorPos Y="940"/>
+        <UsageCount Value="25"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/tgputty/tgputtysftpclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="25"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/eConnect.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="17"/>
+        <CursorPos X="15" Y="37"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/gplists.pas"/>
+        <UnitName Value="GpLists"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2318"/>
+        <CursorPos X="16" Y="2345"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/CareTakerClient.pas"/>
+        <EditorIndex Value="11"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../.lazarus/onlinepackagemanager/packages/Indy10/System/IdStream.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../.lazarus/onlinepackagemanager/packages/Indy10/Core/IdAboutVCL.pas"/>
+        <EditorIndex Value="25"/>
+        <TopLine Value="385"/>
+        <CursorPos X="7" Y="415"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../.lazarus/onlinepackagemanager/packages/Indy10/indylaz.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="3" Y="10"/>
+        <UsageCount Value="13"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../.lazarus/onlinepackagemanager/packages/Indy10/Protocols/IdFTP.pas"/>
+        <EditorIndex Value="24"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/ExcelHelper.pas"/>
+        <EditorIndex Value="16"/>
+        <TopLine Value="30"/>
+        <CursorPos X="7" Y="46"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/globals.pas"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="2392"/>
+        <CursorPos Y="2399"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/c7zip.pas"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="81"/>
+        <CursorPos X="22" Y="94"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/basic.pas"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="28"/>
+        <CursorPos Y="60"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/dbOrgaMon.pas"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="3"/>
+        <CursorPos Y="35"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/OpenOfficePDF.pas"/>
+        <EditorIndex Value="10"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/txXML.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="5078"/>
+        <CursorPos X="13" Y="5094"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/Foto.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="269"/>
+        <CursorPos X="18" Y="285"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/srvXMLRPC.pas"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="134"/>
+        <CursorPos X="20" Y="148"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/usr/lib/fpc/src/rtl/unix/sysutils.pp"/>
+        <EditorIndex Value="27"/>
+        <TopLine Value="52"/>
+        <CursorPos Y="52"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/usr/lib/fpc/src/rtl/objpas/sysutils/finah.inc"/>
+        <EditorIndex Value="18"/>
+        <CursorPos X="10" Y="23"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/usr/lib/fpc/src/rtl/objpas/sysutils/fina.inc"/>
+        <EditorIndex Value="19"/>
+        <TopLine Value="39"/>
+        <CursorPos X="3" Y="45"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/usr/lib/fpc/src/rtl/unix/sysunixh.inc"/>
+        <EditorIndex Value="20"/>
+        <TopLine Value="11"/>
+        <CursorPos X="20" Y="31"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="28">
+    <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="1559" Column="14" TopLine="1546"/>
+        <Filename Value="src/Funktionen_App.pas"/>
+        <Caret Line="1026" TopLine="1011"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="1829" Column="13" TopLine="1818"/>
+        <Filename Value="src/Funktionen_App.pas"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="2282" Column="14" TopLine="2256"/>
+        <Filename Value="src/Funktionen_App.pas"/>
+        <Caret Line="42" Column="5" TopLine="15"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="2356" Column="14" TopLine="2330"/>
+        <Filename Value="src/Funktionen_App.pas"/>
+        <Caret Line="485" Column="29" TopLine="456"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="2651" Column="14" TopLine="2625"/>
+        <Filename Value="src/Identitaet.pas"/>
+        <Caret Line="119" TopLine="104"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="2709" Column="14" TopLine="2683"/>
+        <Filename Value="src/Funktionen_Buch.pas"/>
+        <Caret Line="34" TopLine="9"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="3447" TopLine="3430"/>
+        <Filename Value="src/Identitaet.pas"/>
+        <Caret Line="14" Column="24"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="3683" TopLine="3656"/>
+        <Filename Value="src/Identitaet.pas"/>
+        <Caret Line="127" TopLine="112"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Artikel.pas"/>
-        <Caret Line="3696" TopLine="3669"/>
+        <Filename Value="src/Identitaet.pas"/>
+        <Caret Line="19" TopLine="17"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="38" TopLine="21"/>
+        <Filename Value="src/Identitaet.pas"/>
+        <Caret Line="55" Column="9" TopLine="32"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="304" TopLine="278"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2391" TopLine="2370"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="407" TopLine="381"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2392" TopLine="2370"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="416" TopLine="390"/>
+        <Filename Value="/usr/lib/fpc/src/rtl/objpas/sysutils/finah.inc"/>
+        <Caret Line="23" Column="10"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="1351" TopLine="1332"/>
+        <Filename Value="/usr/lib/fpc/src/rtl/objpas/sysutils/fina.inc"/>
+        <Caret Line="45" Column="3" TopLine="39"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="1545" TopLine="1518"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2476" TopLine="2447"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="8163" TopLine="8136"/>
+        <Filename Value="src/dbOrgaMon.pas"/>
+        <Caret Line="368" Column="3" TopLine="357"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="8834" Column="15" TopLine="8808"/>
+        <Filename Value="src/Funktionen_Basis.pas"/>
+        <Caret Line="184" TopLine="181"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9034" Column="15" TopLine="9008"/>
+        <Filename Value="src/CareTakerClient.pas"/>
+        <Caret Line="75" Column="9" TopLine="44"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9101" Column="25" TopLine="9075"/>
+        <Filename Value="src/basic.pas"/>
+        <Caret Line="2670" TopLine="2654"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9129" Column="23" TopLine="9103"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="8" Column="23" TopLine="4"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9136" Column="23" TopLine="9110"/>
+        <Filename Value="src/fpchelper.pas"/>
+        <Caret Line="1044" TopLine="1028"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9143" Column="21" TopLine="9117"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2399" TopLine="2383"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9411" Column="13" TopLine="9385"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2400" TopLine="2383"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9702" Column="13" TopLine="9675"/>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2401" TopLine="2392"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9711" Column="13" TopLine="9684"/>
+        <Filename Value="src/fpchelper.pas"/>
+        <Caret Line="1044" TopLine="1028"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="9794" Column="19" TopLine="9767"/>
+        <Filename Value="src/fpchelper.pas"/>
+        <Caret Line="1045" TopLine="1028"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="10805" Column="19" TopLine="10778"/>
+        <Filename Value="src/fpchelper.pas"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="11190" Column="15" TopLine="11164"/>
+        <Filename Value="src/basic.pas"/>
+        <Caret Line="1695" TopLine="1679"/>
       </Position>
       <Position>
-        <Filename Value="src/Funktionen_Auftrag.pas"/>
-        <Caret Line="11653" Column="15" TopLine="11627"/>
+        <Filename Value="src/basic.pas"/>
+        <Caret Line="60" TopLine="28"/>
+      </Position>
+      <Position>
+        <Filename Value="src/globals.pas"/>
+        <Caret Line="2399" TopLine="2392"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -217,4 +483,20 @@
       <Modes ActiveMode=""/>
     </RunParams>
   </ProjectSession>
+  <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="src/Identitaet.pas"/>
+        <Line Value="1015"/>
+      </Item>
+    </BreakPoints>
+    <Watches>
+      <Item>
+        <Expression Value="MyProgramPath"/>
+      </Item>
+    </Watches>
+  </Debugging>
 </CONFIG>
