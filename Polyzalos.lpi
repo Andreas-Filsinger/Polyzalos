@@ -57,7 +57,7 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="Polizalos.lpr"/>
+        <Filename Value="Polyzalos.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -157,7 +157,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="Polizalos"/>
+      <Filename Value="Polyzalos"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

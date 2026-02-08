@@ -32,7 +32,7 @@
   |  SOFTWARE.
   |
 }
-program Polizalos;
+program Polyzalos;
 
 {$codepage cp1252}
 {$mode objfpc}{$H+}

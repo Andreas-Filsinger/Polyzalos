@@ -5,7 +5,7 @@
     <BuildModes Active="Default"/>
     <Units>
       <Unit>
-        <Filename Value="Polizalos.lpr"/>
+        <Filename Value="Polyzalos.lpr"/>
         <IsPartOfProject Value="True"/>
         <TopLine Value="34"/>
         <CursorPos X="11" Y="59"/>
