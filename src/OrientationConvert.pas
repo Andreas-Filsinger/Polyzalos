@@ -7548,7 +7548,7 @@ begin
   begin
 
     // Arbeitspfad öffnen
-    WorkPath := ValidatePathName(ExtractFilePath(InFName)) + '\';
+    WorkPath := ValidatePathName(ExtractFilePath(InFName)) + DirectorySeparator;
     FExtension := ExtractFileExt(InFName);
 
     if (LowerCase(FExtension) = '.txt') then
@@ -10803,7 +10803,7 @@ begin
     conversionOutFName := '';
 
     // Arbeitspfad bestimmen
-    WorkPath := ValidatePathName(ExtractFilePath(InFName)) + '\';
+    WorkPath := ValidatePathName(ExtractFilePath(InFName)) + DirectorySeparator;
 
     if (OcTransaktionsTiefe>0) then
     begin

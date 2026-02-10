@@ -2507,7 +2507,7 @@ function DelTree(PathName: string): boolean;
     Res: integer;
   begin
     result := true;
-    Path := Path + '\';
+    Path := Path + DirectorySeparator;
     Res := findfirst(Path + '*', faAnyFile, SRec);
     while Res = 0 do
     begin
@@ -2834,7 +2834,7 @@ begin
       Size := SizeOf(RemoteNameInfo);
       ErrCode := WNetGetUniversalName(ClearedDriveName, UNIVERSAL_NAME_INFO_LEVEL, @RemoteNameInfo, Size);
       if (ErrCode = NO_ERROR) then
-        StrPCopy(ClearedDriveName, PRemoteNameInfo(@RemoteNameInfo)^.lpUniversalName + '\');
+        StrPCopy(ClearedDriveName, PRemoteNameInfo(@RemoteNameInfo)^.lpUniversalName + DirectorySeparator);
     end;
     if GetVolumeInformation(ClearedDriveName, nil, 0, @SerialNum, d1, d2, nil, 0) then
       result := format('%.8x', [SerialNum]);
@@ -2856,8 +2856,8 @@ begin
     result := '';
     exit;
   end;
-  if DriveName[length(DriveName)] <> '\' then
-    DriveName := DriveName + '\';
+  if DriveName[length(DriveName)] <> DirectorySeparator then
+    DriveName := DriveName + DirectorySeparator;
 
   StrPCopy(b2, DriveName);
   SerialNum := @c;
@@ -3129,7 +3129,7 @@ function revPos(const substr: string; const s: string): integer;
   sondern von rechts nach links gesucht.
   Anwendung:
 
-  8 = revpos ('\','C:\XDOS\HELLO.TXT');
+  8 = revpos (DirectorySeparator,'C:\XDOS\HELLO.TXT');
   6 = revpos ('jo','jjolojodel');
 
   usf.
@@ -3266,7 +3266,7 @@ begin
     _Source := ExtractFilePath(Mask);
     CheckCreateDir(Dest);
     for n := 0 to pred(FileL.Count) do
-      if not(FileCopy(_Source + FileL[n], _Dest + '\' + FileL[n], Move, Touch)) then
+      if not(FileCopy(_Source + FileL[n], _Dest + DirectorySeparator + FileL[n], Move, Touch)) then
         inc(ErrorCount);
     result := (ErrorCount = 0);
     FileL.free;
@@ -3886,10 +3886,10 @@ begin
     for n := 0 to pred(SubDirs.Count) do
     begin
       NewMask := Mask;
-      ersetze('\*\', '\' + SubDirs[n] + '\', NewMask);
+      ersetze('\*\', DirectorySeparator + SubDirs[n] + DirectorySeparator, NewMask);
       dir(NewMask, FileNames, uppercase);
       for m := 0 to pred(FileNames.Count) do
-        AllResults.add(SubDirs[n] + '\' + FileNames[m]);
+        AllResults.add(SubDirs[n] + DirectorySeparator + FileNames[m]);
     end;
     FileNames.AddStrings(AllResults);
     AllResults.free;
@@ -3962,9 +3962,9 @@ begin
   addSubs(Path);
   for n := 0 to pred(result.Count) do
   begin
-    s := dirs(Path + result[n] + '\');
+    s := dirs(Path + result[n] + DirectorySeparator);
     for m := 0 to pred(s.Count) do
-      result.add(result[n] + '\' + s[m]);
+      result.add(result[n] + DirectorySeparator + s[m]);
     s.free;
   end;
 end;
@@ -5415,14 +5415,14 @@ begin
     _ProgramFilesDir := GetProgramFilesFolder;
     if (_ProgramFilesDir = '') then
       _ProgramFilesDir := 'C:\Program Files';
-    _ProgramFilesDir := _ProgramFilesDir + '\';
+    _ProgramFilesDir := _ProgramFilesDir + DirectorySeparator;
   end;
   result := _ProgramFilesDir;
 end;
 
 function ApplicationDataDir: string;
 begin
-  result := ValidatePathName(GetAppdataFolder) + '\';
+  result := ValidatePathName(GetAppdataFolder) + DirectorySeparator;
 end;
 
 function WindowsPfad(CSIDL : integer) : string;
@@ -5437,7 +5437,7 @@ end;
 
 function PersonalDataDir_By_CSIDL: string;
 begin
- result := ValidatePathName(WindowsPfad(CSIDL_PERSONAL)) + '\';
+ result := ValidatePathName(WindowsPfad(CSIDL_PERSONAL)) + DirectorySeparator;
 end;
 
 function PersonalDataDir_By_Reg: string;
@@ -5449,7 +5449,7 @@ begin
   begin
     RootKey := HKEY_CURRENT_USER;
     OpenKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders', false);
-    result := ReadString('Personal')+'\';
+    result := ReadString('Personal')+DirectorySeparator;
     ersetze('%USERPROFILE%', GetEnvironmentVariable('USERPROFILE'), result);
     CloseKey;
   end;
@@ -6399,7 +6399,7 @@ begin
       begin
         pFixFInfo := nil;
         nFixFInfo := 0;
-        if VerQueryValue(pFileInfo, '\', pointer(pFixFInfo), nFixFInfo) then
+        if VerQueryValue(pFileInfo, DirectorySeparator, pointer(pFixFInfo), nFixFInfo) then
         begin
           result := format('%d.%d.%d.%d', [
             { } HiWord(pFixFInfo^.dwFileVersionMS),
@@ -6675,7 +6675,7 @@ begin
      {$ifdef fpc}
      _StartDebugFName := GetUserDir + StartDebugLogFName;
      {$else}
-     _StartDebugFName := GetEnvironmentVariable('USERPROFILE') + '\' + StartDebugLogFName;
+     _StartDebugFName := GetEnvironmentVariable('USERPROFILE') + DirectorySeparator + StartDebugLogFName;
      {$endif}
      {$ifdef CONSOLE}
      writeln('Start-Debug-Log ... ' + _StartDebugFName);

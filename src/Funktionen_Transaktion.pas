@@ -3024,7 +3024,7 @@ begin
        continue;
       end;
 
-      if (SearchPathList[spl][length(SearchPathList[spl])]<>'\') then
+      if (SearchPathList[spl][length(SearchPathList[spl])]<>DirectorySeparator) then
       begin
        Error(SearchPathList[spl]+' muss mit einem Backslash (\) enden!');
        SearchPathList.Delete(spl);
@@ -3038,7 +3038,7 @@ begin
 
        Mask := copy(SearchPathList[spl], 1, pred(p));
        Suffix := copy(SearchPathList[spl], succ(p), MaxInt);
-       Root := copy(Mask, 1, RevPos('\',Mask));
+       Root := copy(Mask, 1, RevPos(DirectorySeparator,Mask));
 
        dir(Root + cDirMask_Directory,MoreSearchPathes,false,false);
        for o := 0 to pred(MoreSearchPathes.Count) do

@@ -1771,7 +1771,7 @@ begin
   result :=
   { } iBaustellenPath +
   { } e_r_BaustelleKuerzel(BAUSTELLE_R) +
-  { } '\' +
+  { } DirectorySeparator +
   { } 'Fotos\';
 end;
 
@@ -1837,13 +1837,13 @@ begin
        {} 'select EXPORT_EINSTELLUNGEN from BAUSTELLE where RID=' + inttostr(RID));
 
       CheckCreateDir(FotoPath);
-      WorkPath := FotoPath + e_r_BaustellenPfadFoto(fp_Build, settings) + '\';
+      WorkPath := FotoPath + e_r_BaustellenPfadFoto(fp_Build, settings) + DirectorySeparator;
       JpgPath := e_r_ParameterFoto(settings, cE_FotoZiel);
       if (JpgPath='') then
        JpgPath := WorkPath
       else
       begin
-       JpgPath := FotoPath + JpgPath + '\';
+       JpgPath := FotoPath + JpgPath + DirectorySeparator;
        CheckCreateDir(JpgPath);
       end;
 
@@ -2046,7 +2046,7 @@ begin
   sSettings := e_r_BaustelleEinstellungen(BAUSTELLE_R);
   sParameter.values[cParameter_foto_Modus] := sSettings.values[cE_FotoBenennung];
   sParameter.values[cParameter_foto_Datei] :=
-   {} FotoPath + e_r_BaustellenPfadFoto(Phase, sSettings) + '\' +
+   {} FotoPath + e_r_BaustellenPfadFoto(Phase, sSettings) + DirectorySeparator +
    {} nextp(AktuellerWert, ',', 0);
 
   if DebugMode then
@@ -2077,7 +2077,7 @@ begin
  AUFTRAG_R := e_r_FotoRID(AUFTRAG_R);
  BAUSTELLE_R := e_r_sql('select BAUSTELLE_R from AUFTRAG where RID='+IntToStr(AUFTRAG_R));
  EINSTELLUNGEN := e_r_BaustelleEinstellungen(BAUSTELLE_R);
- result := FotoPath + e_r_BaustellenPfadFoto(Phase, EINSTELLUNGEN) + '\';
+ result := FotoPath + e_r_BaustellenPfadFoto(Phase, EINSTELLUNGEN) + DirectorySeparator;
 end;
 
 function e_r_FotoAblagePfad(AUFTRAG_R: Integer; PARAMETER: string): string;
@@ -2100,7 +2100,7 @@ begin
   end;
   result :=
    { } iInternetAblagenPfad +
-   { } e_r_ParameterFoto(EINSTELLUNGEN,cE_FTPUSER) + '\' ;
+   { } e_r_ParameterFoto(EINSTELLUNGEN,cE_FTPUSER) + DirectorySeparator ;
   FotoName_JonDaX.foto_path(sCall,result);
 
   sCall.Free;
@@ -5048,7 +5048,7 @@ begin
 
   // Output Path
   Baustelle := e_r_BaustelleKuerzel(BAUSTELLE_R);
-  xPath := AuftragMobilServerPath + Baustelle + '\';
+  xPath := AuftragMobilServerPath + Baustelle + DirectorySeparator;
   CheckCreateDir(xPath);
 
   pFotoBenennung := SETTINGS.values[cE_FotoBenennung];
@@ -5520,7 +5520,7 @@ begin
   if (cFeiertage = nil) then
   begin
     cFeiertage := TSperreOfficalHolidays.create;
-    cFeiertage.LoadFromFile(SystemPath + '\' + cFeiertageFName);
+    cFeiertage.LoadFromFile(SystemPath + DirectorySeparator + cFeiertageFName);
   end;
   result := cFeiertage;
 end;
@@ -8709,7 +8709,7 @@ begin
   // Datei mit der Liste der nicht einbaufähigen Neugeräte
   result :=
    { } cAuftragErgebnisPath +
-   { } e_r_BaustellenPfad(Settings) + '\' +
+   { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
    { } 'nicht-EFRE-' + Settings.values[cE_BAUSTELLE_KURZ] + '.csv';
 end;
 
@@ -9780,7 +9780,7 @@ begin
           // Diagnose speichern
           FreieResourcen.SaveToFile(
             { } cAuftragErgebnisPath +
-            { } e_r_BaustellenPfad(Settings) + '\' +
+            { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
             { } 'Diagnose-EFRE.csv');
         end
         else
@@ -9805,7 +9805,7 @@ begin
       begin
         Settings_Zaehlwerke_FName :=
           {} cAuftragErgebnisPath + e_r_BaustellenPfad(Settings) +
-          {} '\' +
+          {} DirectorySeparator +
           {} 'Zaehlwerke.ini';
         if FileExists(Settings_Zaehlwerke_FName) then
           Settings_Zaehlwerke.LoadFromFile(Settings_Zaehlwerke_FName)
@@ -10795,7 +10795,7 @@ begin
       // Ausgabe in die neue Datei
       OutFName :=
        { } cAuftragErgebnisPath +
-       { } e_r_BaustellenPfad(Settings) + '\' +
+       { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
        { } noblank(Settings.values[cE_Praefix]) +
        { } 'Zaehlerdaten_' + Settings.values[cE_TAN] +
        { } noblank(Settings.values[cE_Postfix]) + cSpreadSheetExtension;
@@ -10824,7 +10824,7 @@ begin
           // Bestimmen des Konvertierungs-Modus
           if FileExists(
             { } cAuftragErgebnisPath +
-            { } e_r_BaustellenPfad(Settings) + '\' +
+            { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
             { } cFixedFloodFName) then
             n := Content_Mode_xls2Flood
           else
@@ -10907,7 +10907,7 @@ begin
               begin
                 SingleFName :=
                 { } cAuftragErgebnisPath +
-                { } e_r_BaustellenPfad(Settings) + '\' +
+                { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
                 { } nextp(Oc_Bericht[n], 'INFO: save ', 1);
                 Files.add(SingleFName);
               end;
@@ -10953,7 +10953,7 @@ begin
               begin
                 SingleFName :=
                 { } cAuftragErgebnisPath +
-                { } e_r_BaustellenPfad(Settings) + '\' +
+                { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
                 { } nextp(Oc_Bericht[n], 'INFO: save ', 1);
                 Files.add(SingleFName);
 
@@ -11548,7 +11548,7 @@ var
               RemoveDuplicates(FilesUp);
 
               if DebugMode then
-                FilesUp.SaveToFile(cAuftragErgebnisPath + e_r_BaustellenPfad(Settings) + '\' + 'Files-For-Zip.txt');
+                FilesUp.SaveToFile(cAuftragErgebnisPath + e_r_BaustellenPfad(Settings) + DirectorySeparator + 'Files-For-Zip.txt');
 
               // Zip "FilesUp"
               if (zip(
@@ -11570,7 +11570,7 @@ var
                   if Erfolgsmeldungen then
                     FTP_UploadMasks.add(
                     { } cAuftragErgebnisPath +
-                    { } e_r_BaustellenPfad(Settings) + '\' +
+                    { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
                     { } noblank(Settings.values[cE_Praefix]) +
                     { } 'Zaehlerdaten_' + Settings.values[cE_TAN] +
                     { } '.????.idoc' +
@@ -11579,7 +11579,7 @@ var
                   if Unmoeglichmeldungen then
                     FTP_UploadMasks.add(
                     { } cAuftragErgebnisPath +
-                    { } e_r_BaustellenPfad(Settings) + '\' +
+                    { } e_r_BaustellenPfad(Settings) + DirectorySeparator +
                     { } noblank(Settings.values[cE_Praefix]) +
                     { } 'Zaehlerdaten_' + Settings.values[cE_TAN] +
                     { } '*' + cSpreadSheetExtension +

@@ -712,7 +712,7 @@ begin
       if (sBLZs.count > 0) then
       begin
         sBLZs.sort;
-        sBLZs.LoadFromFile(iSystemPath + '\' + sBLZs[pred(sBLZs.count)]);
+        sBLZs.LoadFromFile(iSystemPath + DirectorySeparator + sBLZs[pred(sBLZs.count)]);
       end;
     end;
   end;

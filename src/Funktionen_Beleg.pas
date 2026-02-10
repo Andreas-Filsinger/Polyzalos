@@ -1211,7 +1211,7 @@ var
   begin
     if pAuchMahnbescheid then
     begin
-      result := MyProgramPath + cMahnbescheidPath + inttostrN(MahnbescheidTAN, 4) + '\' + RIDasStr(PERSON_R) + '\';
+      result := MyProgramPath + cMahnbescheidPath + inttostrN(MahnbescheidTAN, 4) + DirectorySeparator + RIDasStr(PERSON_R) + DirectorySeparator;
       CheckCreateDir(result);
     end
     else
@@ -2115,7 +2115,7 @@ function e_r_BestellInfo(PERSON_R: integer): integer;
 var
   OutPath: string;
 begin
-  OutPath := MyProgramPath + 'Bestellungen\' + RIDasStr(PERSON_R) + '\';
+  OutPath := MyProgramPath + 'Bestellungen\' + RIDasStr(PERSON_R) + DirectorySeparator;
   CheckCreateDir(OutPath);
   FileCopy(AnwenderPath + cHTML_OrderFName, OutPath + cHTML_OrderFName);
   result := 999;
@@ -3380,7 +3380,7 @@ begin
     { } inttostrN(TEILLIEFERUNG, 2)
   else
     result :=
-    { } MyProgramPath + cRechnungsKopiePath + '\' +
+    { } MyProgramPath + cRechnungsKopiePath + DirectorySeparator +
     { } RIDasStr(BELEG_R) + '-' +
     { } inttostrN(TEILLIEFERUNG, 2);
 

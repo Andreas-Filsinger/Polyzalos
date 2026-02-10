@@ -1,8 +1,10 @@
 {
+  |   SPDX-License-Identifier: Apache-2.0
+  |
   |   cryptossl
   |   =========
   |
-  |   minimalistic freepascal Interface to OpenSSL 3
+  |   minimalistic Free Pascal Interface to OpenSSL 3
   |
   |   (c) 2017 - 2023  Andreas Filsinger
   |

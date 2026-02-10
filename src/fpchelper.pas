@@ -340,15 +340,7 @@ const
   NativeBackslash      = Char('\');
   NativeForwardSlash   = Char('/');
 
-  {$IFDEF MSWINDOWS}
-  NativeLineBreak = NativeCrLf;
-  PathSeparator    = '\';
-  {$ENDIF MSWINDOWS}
-  {$IFDEF UNIX}
   NativeLineBreak = NativeLineFeed;
-  PathSeparator    = '/';
-  {$ENDIF UNIX}
-  DirDelimiter = PathSeparator;
   NativeHexDigits      = ['0'..'9', 'A'..'F', 'a'..'f'];
   NativeWhiteSpace     = [NativeTab, NativeLineFeed, NativeVerticalTab,
     NativeFormFeed, NativeCarriageReturn, NativeSpace];

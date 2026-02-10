@@ -3147,7 +3147,7 @@ end;
 function LogKontoFName(KontoNummer: string; BUCH_R: Integer): string;
 begin
   result :=
-   {} MyProgramPath + cHBCIPath + KontoNummer + '\' +
+   {} MyProgramPath + cHBCIPath + KontoNummer + DirectorySeparator +
    {} inttostrN(BUCH_R, 8) + cLogExtension;
 end;
 
@@ -3341,7 +3341,7 @@ begin
        sDir.Sort;
        for n := 0 to pred(sDir.Count) do
        begin
-         DiagnoseLog.LoadFromFile(MyProgramPath+cHBCIPath+KontoNummer+'\'+sDir[n]);
+         DiagnoseLog.LoadFromFile(MyProgramPath+cHBCIPath+KontoNummer+DirectorySeparator+sDir[n]);
          for m := 0 to pred(DiagnoseLog.Count) do
           if (CHarCount(cDTA_csvSeparator,DiagnoseLog[m])>22) then
            if (pos(cDTA_Umsatz_Header,DiagnoseLog[m])=0) then
@@ -3369,7 +3369,7 @@ begin
        for n := 0 to pred(sDir.Count) do
        begin
         sSingle := TStringList.create;
-        sSingle.LoadFromFile(MyProgramPath+cHBCIPath+KontoNummer+'\'+sDir[n]);
+        sSingle.LoadFromFile(MyProgramPath+cHBCIPath+KontoNummer+DirectorySeparator+sDir[n]);
         for m := 0 to pred(sSingle.Count) do
           if (CharCount(cDTA_csvSeparator,sSingle[m])<22) then
           begin

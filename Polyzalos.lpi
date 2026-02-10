@@ -152,6 +152,20 @@
         <Filename Value="src/eConnect.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src/hpack.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="HPACK"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/cryptossl.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/http2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="HTTP2"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

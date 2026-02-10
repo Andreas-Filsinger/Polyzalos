@@ -2321,7 +2321,7 @@ begin
   if (iKontoBLZ = '') then
     iKontoBLZ := '-1';
   if (iSicherungsPrefix = '') then
-    iSicherungsPrefix := nextp(MyProgramPath, '\', CharCount('\', MyProgramPath) - 1) + '_';
+    iSicherungsPrefix := nextp(MyProgramPath, DirectorySeparator, CharCount(DirectorySeparator, MyProgramPath) - 1) + '_';
   if (iSicherungsTyp='') then
     iSicherungsTyp := 'Zip';
   if (iFormColor = 0) then
@@ -2364,10 +2364,10 @@ begin
       // We have a Linux-Server
       iTranslatePath := i_c_DataBasePath;
       ersetze('/srv/firebird/','',iTranslatePath);
-      ersetze('/','\',iTranslatePath);
+      ersetze('/',DirectorySeparator,iTranslatePath);
       iTranslatePath :=
         {} '\\' + i_c_DataBaseHost +
-        {} '\' + 'firebird' + '\' +
+        {} DirectorySeparator + 'firebird' + DirectorySeparator +
         {} iTranslatePath;
       break;
      end;

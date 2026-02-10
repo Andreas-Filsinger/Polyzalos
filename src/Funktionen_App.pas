@@ -6954,7 +6954,7 @@ begin
             if (FotoAblage_PFAD='') then
             begin
               if (pAblagePath<>'') then
-               FotoAblage_PFAD := pAblagePath  + FotoZiel + '\';
+               FotoAblage_PFAD := pAblagePath  + FotoZiel + DirectorySeparator;
             end;
 
             if (FotoAblage_PFAD='') then
@@ -8109,7 +8109,7 @@ begin
     begin
       FotoLog(
         { } cERRORText + ' 1727: ' +
-        { } 'Umbenennung zu "' + FNameNeu + '" ist ungültig. Zwei Pfadtrenner "\" fehlen');
+        { } 'Umbenennung zu "' + FNameNeu + '" ist ungültig. Zwei Pfadtrenner "' + DirectorySeparator + '" fehlen');
       continue;
     end;
 
@@ -8625,7 +8625,7 @@ begin
          AblageName := AnsiLowerCase(sDir[r]);
          if (locate('NAME',AblageName)=-1) then
          begin
-          AblagePfad := pAblagePath + AblageName + '\';
+          AblagePfad := pAblagePath + AblageName + DirectorySeparator;
           if FileExists(AblagePfad + cAblageIndex) then
             addRow(split(
              {} AblageName + ';' +
