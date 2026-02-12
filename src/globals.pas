@@ -2298,7 +2298,7 @@ end;
 const
   DCP_blowfish1: TDCP_Blowfish = nil;
   CryptKeyLength: integer = 0;
-  CryptKey: array [0 .. 1023] of AnsiChar = 'anfisoft' + cApplicationName;
+  CryptKey: array [0 .. 1023] of AnsiChar = 'anfisoft' + cApplicationNamePre;
 
 procedure Crypt_Init;
 begin

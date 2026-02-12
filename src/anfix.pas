@@ -518,6 +518,7 @@ function getParam(x: string): string;
 // Betriebssystem
 function GetUserName : string;
 function PersonalDataDir : string;
+function ComputerName: string;
 
 // Graphische Utils
 function rXL(r: TRect): integer;
@@ -3316,7 +3317,7 @@ end;
 
 function ComputerName: string;
 begin
- result := GetEnvironmentVariable('HOSTNAME');
+ result := unix.GetHostName;
 end;
 
 function GetUserName : string;

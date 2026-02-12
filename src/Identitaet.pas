@@ -119,16 +119,16 @@ begin
     // patch iDataBaseName to help to avoid
     if IsParam('-cl') then
     begin
-      if (pos(GetHostName + ':', iDataBaseName)=1) or
-         (GetHostName=iDataBaseHost) then
+      if (pos(ComputerName + ':', iDataBaseName)=1) or
+         (ComputerName=iDataBaseHost) then
       begin
         iDataBaseName := copy(iDataBaseName, succ(pos(':', iDataBaseName)), MaxInt);
         writeln('INFO: i run on the same machine as the database-server -> trying to avoid TCP connection ...');
       end;
     end else
     begin
-      if (pos(GetHostName + ':', iDataBaseName)=1) or
-         (GetHostName=iDataBaseHost) then
+      if (pos(ComputerName + ':', iDataBaseName)=1) or
+         (ComputerName=iDataBaseHost) then
       begin
         iDataBaseName := 'localhost' + copy(iDataBaseName, pos(':', iDataBaseName), MaxInt);
         writeln('INFO: i run on the same machine as the database-server -> trying to establish a tcp-connection to localhost:  ...');
@@ -149,28 +149,11 @@ begin
       MandantName := copy(i_c_DataBaseFName, succ(k), pred(l - k));
     end;
 
-{$IFDEF fpc}
     protocol := 'firebird';
     ClientCodePage := '';
     User := iDataBaseUser;
-    HostName := i_c_DataBaseHost;
+    HostName := i_c_DataBaseHost; // empty=local connection NOT localhost!
     Database := i_c_DataBaseFName;
-{$ELSE}
-    DataBaseName := iDataBaseName;
-    write('DB-Protokoll ... ');
-    if (i_c_DataBaseHost = '') then
-    begin
-      Server := '';
-      protocol := cplocal;
-      writeln('LOCAL!');
-    end
-    else
-    begin
-      protocol := cpTCP_IP;
-      writeln('TCP!');
-    end;
-    UserName := iDataBaseUser;
-{$ENDIF}
     Password := deCrypt_Hex(iDataBasePassword);
     if (iDataBaseName = '') then
     begin
@@ -442,7 +425,7 @@ begin
   Log(
    {} 'Start am ' + long2date(LetzerTagesAbschlussWarAm) +
    {} ' um ' + secondstostr(LetzerTagesAbschlussWarUm) +
-   {} ' h auf ' + GetHostName);
+   {} ' h auf ' + ComputerName);
   ErrorCount := 0;
 
   sAktions:= TStringList.create;
@@ -731,7 +714,7 @@ begin
   ErrorCount := 0;
   ActionNo := -1;
   Log('Start am ' + long2date(LetzteTagwacheWarAm) + ' um ' + secondstostr(LetzteTagwacheWarUm) + ' h auf ' +
-      GetHostName);
+      ComputerName);
 
   sAktions := TStringList.create;
   with sAktions do
@@ -838,7 +821,7 @@ begin
     DebugMode := anfix.DebugMode;
     DiagnosePath := globals.DiagnosePath;
     TimingStats := IsParam('-at');
-    LogContext := GetHostName + '-' + inttostr(DefaultPort);
+    LogContext := ComputerName + '-' + inttostr(DefaultPort);
 
     if TimingStats then
       writeln('Performance-Log aktiv: ' + LogContext);
@@ -871,7 +854,7 @@ begin
     BasePlug := e_r_BasePlug;
     write(
       { } 'Starte ' +
-      { } GetHostName + ':' + iXMLRPCPort +
+      { } ComputerName + ':' + iXMLRPCPort +
       { } ' im Kontext ' +
       { } BasePlug[25] + ' ... ');
     BasePlug.free;
@@ -968,7 +951,7 @@ begin
       begin
         DefaultPort := JonDa.pPort;
         DiagnosePath := globals.DiagnosePath;
-        LogContext := GetHostName + '-' + inttostr(DefaultPort);
+        LogContext := ComputerName + '-' + inttostr(DefaultPort);
 
         DebugMode := anfix.DebugMode;
         TimingStats := IsParam('-at');
@@ -982,7 +965,7 @@ begin
         AddMethod('ProceedTAN', JonDa.proceed);
 
         // Starten
-        write('Aktiviere ' + GetHostName + ':' + inttostr(DefaultPort) + '  ... ');
+        write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');
         active := true;
 
         writeln('OK');
@@ -1084,35 +1067,17 @@ begin
     //
     if not(IsParam('-dl')) then
     begin
-      {$ifdef fpc}
-      writeln('┌─────────────────────────────────────────────────┐');
-      writeln('│   _  ___                  __  __                │');
-      writeln('│  | |/ _ \ _ __ __ _  __ _|  \/  | ___  _ __     │');
-      writeln('│  | | | | | ''__/ _` |/ _` | |\/| |/ _ \| ''_ \    │');
-      writeln('│  | | |_| | | | (_| | (_| | |  | | (_) | | | |   │');
-      writeln('│  |_|\___/|_|  \__, |\__,_|_|  |_|\___/|_| |_|   │');
-      {$ifdef windows}
-      writeln('│    Rev. ' + RevToStr(globals.version) + ' |___/          win64              │');
-      {$else windows}
-      writeln('│    Rev. ' + RevToStr(globals.version) + ' |___/          linux              │');
-      {$endif windows}
-      writeln('│                                                 │');
-      writeln('└─────────────────────────────────────────────────┘');
-      writeln(' ');
-      {$else fpc}
-      writeln('/---------------------------------------------------\');
-      writeln('|         ___                  __  __               |');
-      writeln('|    ___ / _ \ _ __ __ _  __ _|  \/  | ___  _ __    |');
-      writeln('|   / __| | | | ''__/ _` |/ _` | |\/| |/ _ \| ''_ \   |');
-      writeln('|  | (__| |_| | | | (_| | (_| | |  | | (_) | | | |  |');
-      writeln('|   \___|\___/|_|  \__, |\__,_|_|  |_|\___/|_| |_|  |');
-      writeln('|    Rev. ' + RevToStr(globals.version) + '    |___/       win32                |');
-      writeln('\---------------------------------------------------/');
-      writeln(' ');
-      {$endif fpc}
+     writeln('┌───────────────────────────────────────────────┐');
+     writeln('│   ____       _                _               │');
+     writeln('│  |  _ \ ___ | |_   _ ______ _| | ___  ___     │');
+     writeln('│  | |_) / _ \| | | | |_  / _` | |/ _ \/ __|    │');
+     writeln('│  |  __/ (_) | | |_| |/ / (_| | | (_) \__ \    │');
+     writeln('│  |_|   \___/|_|\__, /___\__,_|_|\___/|___/    │');
+     writeln('│  Rev. ' + RevToStr(globals.version) + '    |___/       linux              │');
+     writeln('└───────────────────────────────────────────────┘');
     end;
     writeln(
-     {} Modus + '@' + noblank('linux') + ' ' +
+     {} Modus + '@' + ComputerName + ' ' +
      {} iMandant +
      {} ' (' + MyProgramPath + ')');
 
@@ -1223,7 +1188,7 @@ begin
       DefaultPort := 3040;
 
     DiagnosePath := globals.DiagnosePath;
-    LogContext := GetHostName + '-' + inttostr(DefaultPort);
+    LogContext := ComputerName + '-' + inttostr(DefaultPort);
 
     DebugMode := anfix.DebugMode;
     TimingStats := IsParam('-at');
@@ -1235,7 +1200,7 @@ begin
     AddMethod('Open', Magneto.rpc_e_w_Magneto);
 
     // Starten
-    write('Aktiviere ' + GetHostName + ':' + inttostr(DefaultPort) + '  ... ');
+    write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');
     active := true;
     writeln('OK');
   end;
