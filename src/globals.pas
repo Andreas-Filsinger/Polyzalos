@@ -39,21 +39,15 @@ interface
 uses
   classes,
   graphics,
-{$IFNDEF CONSOLE}
-  controls,
-{$ENDIF}
-{$IFNDEF fpc}
-  System.UITypes, System.Types,
-{$ELSE}
   fpchelper,
-{$ENDIF}
   anfix,
   OrientationConvert,
   WordIndex;
 
 const
-  cApplicationName = 'OrgaMon'; // CRYPT-KEY! - never Change a bit!!!
-  Version: single = 8.767; // ..\rev\OrgaMon.rev.txt
+  cApplicationNamePre = 'OrgaMon'; // CRYPT-KEY! - never Change a bit!!!
+  cApplicationName = 'Polyzalos';
+  Version: single = 9.003; // ../rev/Polyzalos.rev.txt
 
   // Mindest-Versions-Anforderungen an die Client-App
   cMinVersion_OrgaMonApp: single = 2.045;
@@ -65,9 +59,9 @@ const
   cIniFName = cApplicationName + '.ini';
   cIniFNameConsole = 'c' + cApplicationName + '.ini';
   cIniDataBaseName = 'DatabaseName';
-  cIniDataBaseUser = 'DatabaseUser'; { Default = SYSDBA }
+  cIniDataBaseUser = 'DatabaseUser';    { Default = SYSDBA }
   cIniDataBasePwd = 'DatabasePassword'; { Default = masterkey }
-  cIniDataBaseHost = 'DatabaseHost'; { realer Computername des DB-Host }
+  cIniDataBaseHost = 'DatabaseHost';    { realer Computername des DB-Host }
 
   cGroup_Id_Default = 'System';
   cGroup_Id_Spare = 'Spare';
@@ -103,11 +97,7 @@ const
 
   // Import - Schema
   cSchemaExtension = '.gzs';
-{$ifdef fpc}
   cSpreadSheetExtension = '.ods';
-{$else}
-  cSpreadSheetExtension = '.xls';
-{$endif}
   cImageExtension = '.jpg';
   cPDFExtension = '.pdf';
   cMP3Extension = '.mp3';
@@ -1806,20 +1796,18 @@ var
   k: integer;
 begin
   result := ValidatePathName(MyProgramPath);
-  k := revpos('\', result);
+  k := revpos(DirectorySeparator, result);
   result := copy(result, succ(k), MaxInt);
 end;
 
 procedure patchPath(var s: string);
 begin
-  // imp pend
-  //  ersetze('{app}', ProgramFilesDir, s);
+  ersetze('{app}', '/usr/bin/', s);
   ersetze('{exe}', MyApplicationPath, s);
   ersetze('{own}', EigeneOrgaMonDateienPfad, s);
-  // imp pend
-//  ersetze('{doc}', PersonalDataDir, s);
+  ersetze('{doc}', PersonalDataDir, s);
   ersetze('{org}', MyProgramPath, s);
-  ersetze('\.\', '\', s);
+  ersetze(DirectorySeparator + '.' + DirectorySeparator, DirectorySeparator, s);
 end;
 
 function evalPath(iDataBaseName: string): string;
@@ -2371,80 +2359,63 @@ begin
 end;
 
 initialization
-{$IFNDEF CONSOLE}
-  Application.Title := cApplicationName;
-{$ENDIF}
-StartDebug('globals');
-{$IFNDEF FPC}
-{$ifdef IBO_OLD}
- IB_GetClientLibNameFunc := GetFBClientLibName;
-{$endif}
-{$ENDIF}
-// i8n
+ StartDebug('globals');
 
-DebugMode := false;
-isBeta :=
-{ } isParam('-b') or
-{ } (pos(inttostr(RevAsInteger(globals.Version)), ParamStr(0)) > 0) or
-{ } (pos('-RC.exe', ParamStr(0)) > 0);
+ DebugMode := false;
+ isBeta :=
+  { } isParam('-b') or
+  { } (pos(inttostr(RevAsInteger(globals.Version)), ParamStr(0)) > 0) or
+  { } (pos('-RC.exe', ParamStr(0)) > 0);
 
-iProfilTexte := TStringList.create;
-iSchalterTexte := TStringList.create;
-LanguageStr := TStringList.create;
-LanguageModes := TStringList.create;
-MusicMedias := TStringList.create;
-sBootSequence := TStringList.create;
+ iProfilTexte := TStringList.create;
+ iSchalterTexte := TStringList.create;
+ LanguageStr := TStringList.create;
+ LanguageModes := TStringList.create;
+ MusicMedias := TStringList.create;
+ sBootSequence := TStringList.create;
 
-// OrgaMon
-MyApplicationPath := ExtractFilePath(ParamStr(0));
-MyProgramPath := MyApplicationPath;
-EigeneOrgaMonDateienPfad := PersonalDataDir + cApplicationName + DirectorySeparator;
+ // OrgaMon
+ MyApplicationPath := ExtractFilePath(ParamStr(0));
+ MyProgramPath := MyApplicationPath;
+ EigeneOrgaMonDateienPfad := PersonalDataDir + cApplicationName + DirectorySeparator;
 
-// Namespace;Bad;Color;Priorität
+ // Namespace;Bad;Color;Priorität
+ sSperre_Wert_Baustelle := TStringList.create;
+ sSperre_Wert_Person := TStringList.create;
+ sSperre_Wert_Arbeit := TStringList.create;
+ sSperre_Wert_Baustopp := TStringList.create;
+ sSperre_Wert_Zuordnung := TStringList.create;
 
-sSperre_Wert_Baustelle := TStringList.create;
-sSperre_Wert_Person := TStringList.create;
-sSperre_Wert_Arbeit := TStringList.create;
-sSperre_Wert_Baustopp := TStringList.create;
-sSperre_Wert_Zuordnung := TStringList.create;
+ LoadIniF;
 
-StartDebug(MyProgramPath);
-LoadIniF;
+ StartDebug(MyProgramPath);
+ //
+ DiagnosePath := MyProgramPath + 'Diagnose' + DirectorySeparator;
+ SolidFTP.SolidFTP_LogDir := DiagnosePath;
+ anfix.DebugLogPath := DiagnosePath;
 
-StartDebug(iDataBaseName);
-StartDebug(MyProgramPath);
+ WebDir := MyProgramPath + 'Web Veröffentlichung' + DirectorySeparator;
+ SearchDir := MyProgramPath + 'SuchIndex' + DirectorySeparator;
+ CDRAusgabe := MyProgramPath + 'CD-R\Noten' + DirectorySeparator;
+ AnwenderPath := MyProgramPath + 'Anwender' + DirectorySeparator + GetUserName + DirectorySeparator;
+ ETFLager := MyProgramPath + 'Creator' + DirectorySeparator + 'Zwischenlager' + DirectorySeparator;
+ DatensicherungPath := MyProgramPath + 'Datensicherung' + DirectorySeparator;
+ SoundPath := MyProgramPath + 'Sounds' + DirectorySeparator;
+ SystemPath := MyProgramPath + 'System';
+ Geld.iSystemPath := SystemPath;
+ UpdatePath := MyProgramPath + 'Updates' + DirectorySeparator;
+ WordPath := MyProgramPath + 'Word' + DirectorySeparator;
+ ProtokollePath := MyProgramPath + 'Protokolle' + DirectorySeparator;
+ MDEPath := MyProgramPath + 'MonDa' + DirectorySeparator;
+ HtmlVorlagenPath := MyProgramPath + cHTMLTemplatesDir;
+ AuftragMobilServerPath := MyProgramPath + 'MonDaServer' + DirectorySeparator;
+ WebPath := MyProgramPath + 'Intranet' + DirectorySeparator;
+ SchemaPath := MyProgramPath + 'Schemen' + DirectorySeparator;
+ RohstoffePath := MyProgramPath + 'Rohstoffe' + DirectorySeparator;
+ ImportePath := MyProgramPath + 'Importe' + DirectorySeparator;
+ KassePath := MyProgramPath + 'Kasse' + DirectorySeparator;
 
-//
-DiagnosePath := MyProgramPath + 'Diagnose' + DirectorySeparator;
-SolidFTP.SolidFTP_LogDir := DiagnosePath;
-anfix.DebugLogPath := DiagnosePath;
-
-WebDir := MyProgramPath + 'Web Veröffentlichung' + DirectorySeparator;
-SearchDir := MyProgramPath + 'SuchIndex' + DirectorySeparator;
-CDRAusgabe := MyProgramPath + 'CD-R\Noten' + DirectorySeparator;
-AnwenderPath := MyProgramPath + 'Anwender' + DirectorySeparator + GetUserName + DirectorySeparator;
-ETFLager := MyProgramPath + 'Creator' + DirectorySeparator + 'Zwischenlager' + DirectorySeparator;
-DatensicherungPath := MyProgramPath + 'Datensicherung' + DirectorySeparator;
-SoundPath := MyProgramPath + 'Sounds' + DirectorySeparator;
-SystemPath := MyProgramPath + 'System';
-Geld.iSystemPath := SystemPath;
-UpdatePath := MyProgramPath + 'Updates' + DirectorySeparator;
-WordPath := MyProgramPath + 'Word' + DirectorySeparator;
-ProtokollePath := MyProgramPath + 'Protokolle' + DirectorySeparator;
-{$ifndef CONSOLE}
- ContextPath := ApplicationDataDir + cApplicationName + '\Context\' + iMandant + '\';
-{$endif}
-MDEPath := MyProgramPath + 'MonDa' + DirectorySeparator;
-HtmlVorlagenPath := MyProgramPath + cHTMLTemplatesDir;
-AuftragMobilServerPath := MyProgramPath + 'MonDaServer' + DirectorySeparator;
-WebPath := MyProgramPath + 'Intranet' + DirectorySeparator;
-SchemaPath := MyProgramPath + 'Schemen' + DirectorySeparator;
-RohstoffePath := MyProgramPath + 'Rohstoffe' + DirectorySeparator;
-ImportePath := MyProgramPath + 'Importe' + DirectorySeparator;
-//cCareTakerDiagnosePath := MyProgramPath + 'CareTaker' + DirectorySeparator;
-KassePath := MyProgramPath + 'Kasse' + DirectorySeparator;
-
-StartDebug('CheckCreate.begin');
+ StartDebug('CheckCreate.begin');
 
 CheckCreateDir(AnwenderPath); // Username dependency
 

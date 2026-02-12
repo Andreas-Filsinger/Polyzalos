@@ -1785,7 +1785,7 @@ begin
     svcRestore.Free;
     ResultFName := DatensicherungPath + fbak_FName;
 
-    // a) in den Windows Bereich kopieren (falls es nicht schon dort ist!)
+    // a) in den Sicherungs Bereich kopieren (falls es nicht schon dort ist!)
     if (iTranslatePath <> DatensicherungPath) then
      if not (FileExists(DatensicherungPath + fbak_FName)) then
      begin
@@ -2355,20 +2355,13 @@ begin
   if (iTestDrucker = cIni_DeActivate) then
     iTestDrucker := '';
 
-  // defaults für "FreigabePfad="
+  // defaults für "FreigabePfad=" berechnen
   if (iTranslatePath='') then
    repeat
 
-     if (i_c_DataBaseHost<>'') and (pos('/',i_c_DataBasePath)>0) then
+     if (i_c_DataBaseHost<>'') then
      begin
-      // We have a Linux-Server
-      iTranslatePath := i_c_DataBasePath;
-      ersetze('/srv/firebird/','',iTranslatePath);
-      ersetze('/',DirectorySeparator,iTranslatePath);
-      iTranslatePath :=
-        {} '\\' + i_c_DataBaseHost +
-        {} DirectorySeparator + 'firebird' + DirectorySeparator +
-        {} iTranslatePath;
+      iTranslatePath := '/mnt/f/';
       break;
      end;
 

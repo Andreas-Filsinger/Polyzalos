@@ -67,11 +67,6 @@ uses
   binlager,
   systemd,
 
-
-  // DB
-{$IFNDEF FPC}
-  IB_Session,
-{$ENDIF}
   // OrgaMon-Globals
   globals,
   dbOrgaMon,

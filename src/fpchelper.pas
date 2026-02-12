@@ -412,8 +412,6 @@ function StrHasAlpha(const str: String): boolean;
 procedure RegisterExpectedMemoryLeak(var a);
 
 function GetProgramFilesFolder : string;
-function PersonalDataDir : string;
-function GetUserName : string;
 
 function TDCP_hash_FromFile(pHash: TDCP_hash; FileName: string): string; {public}
 function TDCP_hash_FromStrings(pHash : TDCP_hash; Str: TStrings): string;
@@ -891,180 +889,61 @@ begin
       Exit;
     end;
 end;
-{$ifdef MSWINDOWS}
 
-function PidlToPath(IdList: PItemIdList): string;
-begin
-  SetLength(Result, MAX_PATH);
-  if SHGetPathFromIdList(IdList, PChar(Result)) then
-    StrResetLength(Result)
-  else
-    Result := '';
-end;
-
-//----------------------------------------------------------------------------
-
-function GetSpecialFolderLocation(const Folder: Integer): string;
+function TDCP_hash_FromFile(pHash: TDCP_hash; FileName: string): string; {public}
 var
-  FolderPidl: PItemIdList;
+  HashSizeInBytes: integer;
+  Hash: array of Byte;
+  HashS: array of AnsiChar;
+  DataF: TFileStream;
 begin
-  FolderPidl := nil;
-  if Succeeded(SHGetSpecialFolderLocation(0, Folder, FolderPidl)) then
+  with pHash do
   begin
-    try
-      Result := PidlToPath(FolderPidl);
-    finally
-      CoTaskMemFree(FolderPidl);
-    end;
-  end
-  else
-    Result := '';
-end;
 
+  // init hash, prepare buffers
+  Init;
+  HashSizeInBytes := GetHashSize DIV 8;
+  SetLength(Hash,HashSizeInBytes);
+  SetLength(HashS,HashSizeInBytes*2+1);
 
-function GetPersonalFolder : string;
-begin
-  {$IFDEF UNIX}
-  Result := GetEnvironmentVariable('HOME') + '/';
-  {$ENDIF UNIX}
-  {$IFDEF MSWINDOWS}
-  Result := GetSpecialFolderLocation(CSIDL_PERSONAL) + '\';
-  {$ENDIF MSWINDOWS}
-end;
+  // Open File
+  DataF := TFileStream.create(FileName,fmOpenRead,fmShareDenyNone);
+  UpdateStream(DataF,DataF.Size);
+  DataF.Free;
 
-function GetAppdataFolder : string;
-begin
-  result := '// imp pend';
-end;
-{$endif}
-
-{$ifdef MSWINDOWS}
-Const
-  LF_FACESIZE = 32;
-
-  // FONT WEIGHT (BOLD) VALUES
-  FW_DONTCARE         = 0;
-//  FW_NORMAL           = 400;
-  FW_BOLD             = 700;
-
-Type
-  CONSOLE_FONT_INFOEX = record
-    cbSize     : ULONG;
-    nFont      : DWORD;
-    dwFontSize : COORD;
-    FontFamily : UINT;
-    FontWeight : UINT;
-    FaceName   : array [0..LF_FACESIZE-1] of WCHAR;
+  // make a finger print string from hash
+  // lower-case seem to be common
+  Final(Hash[0]);
+  BinToHex(PAnsiChar(Hash),PAnsiChar(HashS),HashSizeInBytes);
+  result := AnsiLowerCase(PAnsiChar(HashS));
   end;
+end;
 
-{ Only supported in Vista and onwards!}
-
-function SetCurrentConsoleFontEx(hConsoleOutput: HANDLE; bMaximumWindow: BOOL; var CONSOLE_FONT_INFOEX): BOOL; stdcall; external kernel32;
-
+function TDCP_hash_FromStrings(pHash : TDCP_hash; Str: TStrings): string;
 var
-  New_CONSOLE_FONT_INFOEX: CONSOLE_FONT_INFOEX;
-  _SystemCodePage : DWORD;
-  _TextCodePage : DWORD;
-  {$endif}
-
-  function TDCP_hash_FromFile(pHash: TDCP_hash; FileName: string): string; {public}
-  var
-    HashSizeInBytes: integer;
-    Hash: array of Byte;
-    HashS: array of AnsiChar;
-    DataF: TFileStream;
+  HashSizeInBytes: integer;
+  Hash: array of Byte;
+  HashS: array of AnsiChar;
+  n : integer;
+begin
+  with pHash do
   begin
-    with pHash do
-    begin
+  // init hash, prepare buffers
+  Init;
+  HashSizeInBytes := GetHashSize DIV 8;
+  SetLength(Hash,HashSizeInBytes);
+  SetLength(HashS,HashSizeInBytes*2+1);
 
-    // init hash, prepare buffers
-    Init;
-    HashSizeInBytes := GetHashSize DIV 8;
-    SetLength(Hash,HashSizeInBytes);
-    SetLength(HashS,HashSizeInBytes*2+1);
+  // Open File
+  for n := 0 to pred(Str.count) do
+   updateStr(Str[n]);
 
-    // Open File
-    DataF := TFileStream.create(FileName,fmOpenRead,fmShareDenyNone);
-    UpdateStream(DataF,DataF.Size);
-    DataF.Free;
-
-    // make a finger print string from hash
-    // lower-case seem to be common
-    Final(Hash[0]);
-    BinToHex(PAnsiChar(Hash),PAnsiChar(HashS),HashSizeInBytes);
-    result := AnsiLowerCase(PAnsiChar(HashS));
-    end;
+  // make a finger print string from hash
+  // lower-case seem to be common
+  Final(Hash[0]);
+  BinToHex(PAnsiChar(Hash),PAnsiChar(HashS),HashSizeInBytes);
+  result := AnsiLowerCase(PAnsiChar(HashS));
   end;
+end;
 
-  function TDCP_hash_FromStrings(pHash : TDCP_hash; Str: TStrings): string;
-  var
-    HashSizeInBytes: integer;
-    Hash: array of Byte;
-    HashS: array of AnsiChar;
-    n : integer;
-  begin
-    with pHash do
-    begin
-    // init hash, prepare buffers
-    Init;
-    HashSizeInBytes := GetHashSize DIV 8;
-    SetLength(Hash,HashSizeInBytes);
-    SetLength(HashS,HashSizeInBytes*2+1);
-
-    // Open File
-    for n := 0 to pred(Str.count) do
-     updateStr(Str[n]);
-
-    // make a finger print string from hash
-    // lower-case seem to be common
-    Final(Hash[0]);
-    BinToHex(PAnsiChar(Hash),PAnsiChar(HashS),HashSizeInBytes);
-    result := AnsiLowerCase(PAnsiChar(HashS));
-    end;
-  end;
-
-var
-   dwMode:DWORD ;
-
-   function GetUserName : string;
-   begin
-     result := GetEnvironmentVariable('USER');
-   end;
-
-   function PersonalDataDir : string;
-   begin
-     result := GetEnvironmentVariable('HOME')+ '/';
-   end;
-
-initialization
-
-  {$ifdef WINDOWS}
-  _SystemCodePage := DefaultSystemCodePage;
-  _TextCodePage := GetTextCodePage(Output);
-
-  // The whole World: UTF-8 only
-  DefaultSystemCodePage := CP_UTF8;
-  SetConsoleOutputCP(CP_UTF8);
-  SetTextCodePage(Output, CP_UTF8);
-  SetConsoleCP(CP_UTF8);
-
-  // set another Font for the Console
-  FillChar(New_CONSOLE_FONT_INFOEX, SizeOf(CONSOLE_FONT_INFOEX), 0);
-  New_CONSOLE_FONT_INFOEX.cbSize := SizeOf(CONSOLE_FONT_INFOEX);
-  New_CONSOLE_FONT_INFOEX.FaceName := 'Source Code Pro Semibold'; //'';
-  New_CONSOLE_FONT_INFOEX.FontWeight := FW_NORMAL;
-  New_CONSOLE_FONT_INFOEX.dwFontSize.Y := 20;
-  SetCurrentConsoleFontEx(StdOutputHandle, False, New_CONSOLE_FONT_INFOEX);
-
-  // activate ANSI Color
-  GetConsoleMode(StdOutputHandle, dwMode);
-  SetConsoleMode(StdOutputHandle, dwMode Or ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-
-  // we start first output
-  {$ifdef console}
-  Writeln('default system codepage: ', DefaultSystemCodePage, ' (was ',_SystemCodePage,')');
-  Writeln('console output codepage: ', GetTextCodePage(Output), ' (was ',_TextCodePage,')');
-  {$endif}
-
-  {$endif}
 end.

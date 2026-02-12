@@ -1,19 +1,24 @@
 (* anfix - low level Tools
 
-  Copyright (C) 2007 - 2023  Andreas Filsinger
+  Copyright (C) 2007 - 2026  Andreas Filsinger
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  |  Permission is hereby granted, free of charge, to any person obtaining a copy
+  |  of this software and associated documentation files (the "Software"), to deal
+  |  in the Software without restriction, including without limitation the rights
+  |  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  |  copies of the Software, and to permit persons to whom the Software is
+  |  furnished to do so, subject to the following conditions:
+  |
+  |  The above copyright notice and this permission notice shall be included in all
+  |  copies or substantial portions of the Software.
+  |
+  |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  |  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  |  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  |  SOFTWARE.
 
   https://wiki.orgamon.org/
 
@@ -470,7 +475,7 @@ procedure FileLimitTo(const TextFName: string; MaximumSize: int64);
 function FileReduce(const TextFName: string; MaximumSize: int64) : TStringList;
 procedure FileEmpty(const FName: string);
 procedure FileAlive(const FName: string);
-
+function ExtractFileNameWithoutExtension(FileName: string): string;
 function FileCompare(const FName1, FName2: string): boolean;
 function FSize(FName: string): int64;
 function FileDate(FName: string): TAnfixDate;
@@ -497,13 +502,6 @@ procedure CheckCreateDir(dir: string); // create dir (recursively)
 function DirDelete(const Mask: string): boolean; overload;
 function DirDelete(const Mask: string; OlderThan: TAnfixDate): boolean; overload;
 
-// Drive-Function
-function FSerial(DriveName: string): string;
-function FVolume(DriveName: string): string;
-function FisCD(DriveName: string): boolean;
-function FisNetwork(DriveName: string): boolean;
-function ExtractFileNameWithoutExtension(FileName: string): string;
-
 // Time & Performance
 function Frequently: LongWord; overload;
 function Frequently(var LastTime: LongWord; DelayCount: LongWord): boolean; overload; // DelayCount [ms]
@@ -517,42 +515,9 @@ procedure perfEnd;
 function IsParam(x: string): boolean;
 function getParam(x: string): string;
 
-// Program Termination
-function AlreadyRunning(ApplicationName: string): boolean;
-procedure CloseAppSem;
-
-{$ifdef MSWINDOWS}
-
-// Win32 Sachen
-function IsAdmin: boolean;
-function SetPrivilege(privilegeName: string; enable: boolean): boolean;
-procedure WindowsHerunterfahren;
-procedure WindowsNeuStarten;
-procedure WindowsAbmelden;
-Procedure PostKeyEx32(key: Word; Const shift: TShiftState; specialkey: boolean);
-
-// System Information
-function CPUMhz: integer; // Frequence of CPU-Clock [MHz]
-{$ifndef fpc}
-function CPUUsage: integer; // 0-100 [%] !pending integration!
-function FileVersion(const FName: string): string;
-{$endif}
-function UserName: string;
-function ComputerName: string;
-function Domain: string;
-function Betriebssystem: string;
-
-// spezielle Pfade , im Moment noch über JclSysInfo, mit Slash am Ende!
-function ProgramFilesDir: string;
-function ApplicationDataDir: string;
-
-// aus eigener Kraft, wine Kompatibel
-function PersonalDataDir: string;
-
-// CD-Player Utils
-function GetCDAutoRun: boolean;
-procedure SetCDAutoRun(vAutoRun: boolean);
-{$endif}
+// Betriebssystem
+function GetUserName : string;
+function PersonalDataDir : string;
 
 // Graphische Utils
 function rXL(r: TRect): integer;
@@ -608,20 +573,10 @@ implementation
 {$WARN UNIT_PLATFORM OFF}
 
 uses
-{$IFDEF fpc}
   DateUtils, LConvEncoding, FileUtil,
-{$IFDEF UNIX}
-  BaseUnix,
-{$ENDIF}
+  BaseUnix, unix,
   fpchelper,
-{$ELSE}
-  JclSysInfo,
-  System.Types,
-{$ENDIF}
   math,
-{$ifdef MSWINDOWS}
-  shellapi,
-{$endif}
   registry;
 
 type
@@ -631,10 +586,6 @@ type
     yr: longint; { 0 .. 9999 }
     Day: longint; { 1 .. 366 }
   end;
-
-  {$ifndef fpc}
-  PtrUInt = dword;
-  {$endif}
 
 const
   monthtotal: montharray = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365);
@@ -2659,22 +2610,16 @@ end;
 function FSize(FName: string): int64;
 var
   F: Tsearchrec;
-{$ifndef MSWINDOWS}
-  H : File of Byte;
-{$endif}
+  H : File;
 begin
   result := cFSize_NotExists;
   if (SysUtils.findfirst(FName, faAnyFile, F) = 0) then
   begin
     try
-      {$ifdef MSWINDOWS}
-      result := F.FindData.nFileSizeLow or (F.FindData.nFileSizeHigh shl 32);
-      {$else}
       Assign(H,FName);
       reset(H);
       result := FileSize(H);
       close(H);
-      {$endif}
     finally
       SysUtils.findclose(F);
     end;
@@ -2798,75 +2743,6 @@ begin
       result := NextP(Paramstr(n), '=', 1);
       break;
     end;
-end;
-
-function FisNetwork(DriveName: string): boolean;
-var
-  ClearedDriveName: array [0 .. 1023] of char;
-begin
-  StrPCopy(ClearedDriveName, DriveName[1] + ':\');
-  {$ifdef MSWINDOWS}
-  result := (GetDriveType(ClearedDriveName) = DRIVE_REMOTE);
-  {$else}
-  // imp pend: linux
-  {$endif}
-end;
-
-var
-  RemoteNameInfo: array [0 .. 1023] of char;
-
-function FSerial(DriveName: string): string;
-var
-  SerialNum: dword;
-  d1, d2: dword;
-
-  ClearedDriveName: array [0 .. 1023] of char;
-  Size: dword;
-  ErrCode: integer;
-begin
-  result := '????????';
-  if length(DriveName) > 0 then
-  begin
-    StrPCopy(ClearedDriveName, DriveName[1] + ':\');
-    {$ifdef MSWINDOWS}
-    if GetDriveType(ClearedDriveName) = DRIVE_REMOTE then
-    begin
-      Size := SizeOf(RemoteNameInfo);
-      ErrCode := WNetGetUniversalName(ClearedDriveName, UNIVERSAL_NAME_INFO_LEVEL, @RemoteNameInfo, Size);
-      if (ErrCode = NO_ERROR) then
-        StrPCopy(ClearedDriveName, PRemoteNameInfo(@RemoteNameInfo)^.lpUniversalName + DirectorySeparator);
-    end;
-    if GetVolumeInformation(ClearedDriveName, nil, 0, @SerialNum, d1, d2, nil, 0) then
-      result := format('%.8x', [SerialNum]);
-    {$else}
-    // imp pend: linux
-    {$endif}
-  end;
-end;
-
-function FVolume(DriveName: string): string;
-var
-  SerialNum: pdword;
-  a, b, c: dword;
-  Buffer: array [0 .. 255] of char;
-  b2: array [0 .. 255] of char;
-begin
-  if (DriveName = '') then
-  begin
-    result := '';
-    exit;
-  end;
-  if DriveName[length(DriveName)] <> DirectorySeparator then
-    DriveName := DriveName + DirectorySeparator;
-
-  StrPCopy(b2, DriveName);
-  SerialNum := @c;
-  {$ifdef MSWINDOWS}
-  GetVolumeInformation(b2, Buffer, SizeOf(Buffer), SerialNum, a, b, nil, 0);
-  {$else}
-  // imp pend: linux
-  {$endif}
-  result := Buffer;
 end;
 
 function InSide(const x, y: integer; const r: TRect): boolean;
@@ -3438,422 +3314,22 @@ begin
   result := FileCopy(Mask, Dest, true);
 end;
 
-function AlreadyRunning(ApplicationName: string): boolean;
-begin
-{$ifdef MSWINDOWS}
-  AppSem := CreateSemaphore(nil, 0, 1, PCHAR(ApplicationName));
-  result := (AppSem <> 0) and (GetLastError = ERROR_ALREADY_EXISTS);
-  {$else}
-  // imp pend:
-  {$endif}
-end;
-
-procedure CloseAppSem;
-begin
-{$ifdef MSWINDOWS}
-  CloseHandle(AppSem);
-{$else}
-// imp pend:
-{$endif}
-end;
-
-function FisCD(DriveName: string): boolean;
-var
-  _DriveName: array [0 .. 63] of char;
-begin
-  StrPCopy(_DriveName, AnsiUpperCase(DriveName[1]) + ':\');
-  {$ifdef MSWINDOWS}
-  result := GetDriveType(_DriveName) = DRIVE_CDROM;
-  {$else}
-  // imp pend
-  {$endif}
-end;
-
-procedure SetCDAutoRun(vAutoRun: boolean);
-(* this code comes from Delphi Developer Support *)
-var
-  reg: TRegistry;
-  AutoRunSetting: integer;
-begin
-  reg := TRegistry.create;
-  with reg do
-  begin
-    RootKey := HKEY_CURRENT_USER;
-    LazyWrite := false;
-    OpenKey('Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', false);
-    ReadBinaryData('NoDriveTypeAutoRun', AutoRunSetting, SizeOf(AutoRunSetting));
-    if vAutoRun then
-      AutoRunSetting := AutoRunSetting and not(1 shl 5)
-    else
-      AutoRunSetting := AutoRunSetting or (1 shl 5);
-    reg.WriteBinaryData('NoDriveTypeAutoRun', AutoRunSetting, SizeOf(AutoRunSetting));
-    CloseKey;
-    free;
-  end;
-end;
-
-function GetCDAutoRun: boolean;
-(* this code comes from Delphi Developer Support *)
-var
-  reg: TRegistry;
-  AutoRunSetting: integer;
-begin
-  reg := TRegistry.create;
-  with reg do
-  begin
-    RootKey := HKEY_CURRENT_USER;
-    OpenKey('Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', false);
-    ReadBinaryData('NoDriveTypeAutoRun', AutoRunSetting, SizeOf(AutoRunSetting));
-    CloseKey;
-    free;
-  end;
-  result := not((AutoRunSetting and (1 shl 5)) <> 0);
-end;
-
-{$ifdef MSWINDOWS}
-
-// Hier gehts los, alles für das CPU-Usage Tool!
-
-{ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-  CPU Usage Measurement routines for Delphi and C++ Builder
-
-  Author:       Alexey A. Dynnikov
-  EMail:        aldyn@chat.ru
-  WebSite:      http://www.aldyn.ru/
-  Support:      Use the e-mail aldyn@chat.ru
-  or support@aldyn.ru
-
-  Creation:     Jul 8, 2000
-  Version:      1.02
-
-  Legal issues: Copyright (C) 2000 by Alexey A. Dynnikov <aldyn@chat.ru>
-
-  This software is provided 'as-is', without any express or
-  implied warranty.  In no event will the author be held liable
-  for any  damages arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any
-  purpose, including commercial applications, and to alter it
-  and redistribute it freely, subject to the following
-  restrictions:
-
-  1. The origin of this software must not be misrepresented,
-  you must not claim that you wrote the original software.
-  If you use this software in a product, an acknowledgment
-  in the product documentation would be appreciated but is
-  not required.
-
-  2. Altered source versions must be plainly marked as such, and
-  must not be misrepresented as being the original software.
-
-  3. This notice may not be removed or altered from any source
-  distribution.
-
-  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  USAGE:
-
-  1. Include this unit into project.
-
-  2. Call GetCPUCount to obtain the numbr of processors in the system
-
-  3. Each time you need to know the value of CPU usage call the CollectCPUData
-  to refresh the CPU usage information. Then call the GetCPUUsage to obtain
-  the CPU usage for given processor. Note that succesive calls of GetCPUUsage
-  without calling CollectCPUData will return the same CPU usage value.
-
-  Example:
-
-  procedure TTestForm.TimerTimer(Sender: TObject);
-  var i: Integer;
-  begin
-  CollectCPUData; // Get the data for all processors
-
-  for i:=0 to GetCPUCount-1 do // Show data for each processor
-  MInfo.Lines[i]:=Format('CPU #%d - %5.2f%%',[i,GetCPUUsage(i)*100]);
-  end;
-  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
-
-type
-  PInt64 = ^int64;
-
-  TPERF_DATA_BLOCK = record
-    Signature: array [0 .. 4 - 1] of WCHAR;
-    LittleEndian: dword;
-    Version: dword;
-    Revision: dword;
-    TotalByteLength: dword;
-    HeaderLength: dword;
-    NumObjectTypes: dword;
-    DefaultObject: longint;
-    SystemTime: TSystemTime;
-    Reserved: dword;
-    PerfTime: int64;
-    PerfFreq: int64;
-    PerfTime100nSec: int64;
-    SystemNameLength: dword;
-    SystemNameOffset: dword;
-  end;
-
-  PPERF_DATA_BLOCK = ^TPERF_DATA_BLOCK;
-
-  TPERF_OBJECT_TYPE = record
-    TotalByteLength: dword;
-    DefinitionLength: dword;
-    HeaderLength: dword;
-    ObjectNameTitleIndex: dword;
-    ObjectNameTitle: LPWSTR;
-    ObjectHelpTitleIndex: dword;
-    ObjectHelpTitle: LPWSTR;
-    DetailLevel: dword;
-    NumCounters: dword;
-    DefaultCounter: longint;
-    NumInstances: longint;
-    CodePage: dword;
-    PerfTime: int64;
-    PerfFreq: int64;
-  end;
-
-  PPERF_OBJECT_TYPE = ^TPERF_OBJECT_TYPE;
-
-  TPERF_COUNTER_DEFINITION = record
-    ByteLength: dword;
-    CounterNameTitleIndex: dword;
-    CounterNameTitle: LPWSTR;
-    CounterHelpTitleIndex: dword;
-    CounterHelpTitle: LPWSTR;
-    DefaultScale: longint;
-    DetailLevel: dword;
-    CounterType: dword;
-    CounterSize: dword;
-    CounterOffset: dword;
-  end;
-
-  PPERF_COUNTER_DEFINITION = ^TPERF_COUNTER_DEFINITION;
-
-  TPERF_COUNTER_BLOCK = record
-    ByteLength: dword;
-  end;
-
-  PPERF_COUNTER_BLOCK = ^TPERF_COUNTER_BLOCK;
-
-  TPERF_INSTANCE_DEFINITION = record
-    ByteLength: dword;
-    ParentObjectTitleIndex: dword;
-    ParentObjectInstance: dword;
-    UniqueID: longint;
-    NameOffset: dword;
-    NameLength: dword;
-  end;
-
-  PPERF_INSTANCE_DEFINITION = ^TPERF_INSTANCE_DEFINITION;
-
-  // ------------------------------------------------------------------------------
-
-const
-  Processor_IDX_Str = '238';
-  Processor_IDX = 238;
-  CPUUsageIDX = 6;
-
-type
-  AInt64F = array [0 .. $FFFF] of int64;
-  PAInt64F = ^AInt64F;
-
-var
-  _PerfData: PPERF_DATA_BLOCK;
-  _BufferSize: integer;
-  _POT: PPERF_OBJECT_TYPE;
-  _PCD: PPERF_COUNTER_DEFINITION;
-  _ProcessorsCount: integer;
-  _Counters: PAInt64F;
-  _PrevCounters: PAInt64F;
-  _SysTime: int64;
-  _PrevSysTime: int64;
-  _IsWinNT: boolean;
-  _IsWin2000: boolean;
-  _W9xCollecting: boolean;
-  _W9xCpuUsage: dword;
-  _W9xCpuKey: HKEY;
-  _CPUcount: integer;
-
-  // ------------------------------------------------------------------------------
-
-procedure ReleaseCPUData;
-var
-  h: HKEY;
-  r: dword;
-  dwDataSize, dwType: dword;
-begin
-  if _IsWinNT then
-    exit;
-  if not _W9xCollecting then
-    exit;
-  _W9xCollecting := false;
-
-  RegCloseKey(_W9xCpuKey);
-
-  r := RegOpenKeyEx(HKEY_DYN_DATA, 'PerfStats\StopStat', 0, KEY_ALL_ACCESS, h);
-
-  if r <> ERROR_SUCCESS then
-    exit;
-
-  dwDataSize := SizeOf(dword);
-
-  RegQueryValueEx(h, 'KERNEL\CPUUsage', nil, @dwType, PBYTE(@_W9xCpuUsage), @dwDataSize);
-
-  RegCloseKey(h);
-
-end;
-
-var
-  _UserName: string = '';
-
-function UserName: string;
-var
-  NameBuf: array [0 .. 1023] of char;
-  NameBufSize: dword;
-  fret: bool;
-  ErrorCode: dword;
-begin
-  if (_UserName = '') then
-  begin
-    if IsParam('--g') then
-    begin
-      _UserName := 'Gast';
-    end
-    else
-    begin
-      NameBufSize := SizeOf(NameBuf);
-      fret := GetUserName(NameBuf, NameBufSize);
-      if not(fret) then
-      begin
-        ErrorCode := GetLastError;
-        SysErrorMessage(ErrorCode);
-      end;
-      _UserName := NameBuf;
-    end;
-  end;
-  result := _UserName;
-end;
-
-var
-  _Domain: string = '';
-
-function Domain: string;
-type
-  // missing in windows.pas?!
-  PTOKEN_USER = ^TOKEN_USER;
-
-  TOKEN_USER = record
-    user: SID_AND_ATTRIBUTES;
-  end;
-var
-  reg: TRegistry;
-  hToken: THandle;
-  InfoBuffer: array [0 .. 511] of byte;
-  cbInfoBuffer: dword;
-  UserName: array [0 .. 1023] of char;
-  cchUserName: dword;
-  DomainName: array [0 .. 1023] of char;
-  cchDomainName: dword;
-  snu: SID_NAME_USE;
-begin
-  if (_Domain = '') then
-  begin
-    _Domain := '?';
-    if (Win32Platform = VER_PLATFORM_WIN32_NT) then
-    begin
-      // Lösung mit NT
-      repeat
-
-        // ObtainToken
-        if not(OpenThreadToken(GetCurrentThread, TOKEN_QUERY, true, hToken)) then
-        begin
-          if (GetLastError = ERROR_NO_TOKEN) then
-          begin
-            if not(OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, hToken)) then
-              break;
-          end
-          else
-          begin
-            break;
-          end;
-        end;
-
-        // ObtainSID
-        cbInfoBuffer := SizeOf(InfoBuffer);
-        if not(GetTokenInformation(hToken, TokenUser, @InfoBuffer, cbInfoBuffer, cbInfoBuffer)) then
-          break;
-        CloseHandle(hToken);
-
-        // ObtainDomain
-        cchUserName := SizeOf(UserName);
-        cchDomainName := SizeOf(DomainName);
-        if not(LookupAccountSid(nil, PTOKEN_USER(@InfoBuffer)^.user.sid, UserName, cchUserName, DomainName,
-          cchDomainName, snu)) then
-          break;
-        _Domain := DomainName;
-      until yet;
-    end
-    else
-    begin
-      // win95, win98
-      reg := TRegistry.create;
-      with reg do
-      begin
-        RootKey := HKEY_LOCAL_MACHINE;
-        OpenKey('System\CurrentControlSet\Services\VxD\VNETSUP', false);
-        _Domain := ReadString('Workgroup');
-      end;
-      reg.free;
-    end;
-  end;
-  result := _Domain;
-end;
-
-var
-  _ComputerName: string = '';
-
-function ComputerName: string;
-var
-  NameBuf: array [0 .. 1023] of char;
-  NameBufSize: dword;
-  fret: bool;
-  ErrorCode: dword;
-begin
-  if (_ComputerName = '') then
-  begin
-    NameBufSize := SizeOf(NameBuf);
-    fret := GetComputerName(NameBuf, NameBufSize);
-    if not(fret) then
-    begin
-      ErrorCode := GetLastError;
-      StrPCopy(NameBuf, SysErrorMessage(ErrorCode));
-    end;
-    _ComputerName := NameBuf;
-  end;
-  result := _ComputerName;
-  // alternativ: CurrentControlSet\Control\ComputerName\ComputerName
-end;
-
-{$else}
-
-// imp pend:
-
 function ComputerName: string;
 begin
-  // *read (/proc/sys/kernel/hostname)
-  // read (/proc/sys/kernel/version)
-  // read (/proc/sys/kernel/domainname)
-  // read (/proc/sys/kernel/osrelease
- result := '';
+ result := GetEnvironmentVariable('HOSTNAME');
 end;
 
-function NetworkInstalled: boolean;
+function GetUserName : string;
 begin
-  result := true;
+ result := GetEnvironmentVariable('USER');
 end;
 
-{$endif}
+function PersonalDataDir : string;
+begin
+ // imp pend:
+ // read from "$HOME/.config/user-dirs.dirs[XDG_DOCUMENTS_DIR]"
+ result := GetEnvironmentVariable('HOME')+ '/Documents/';
+end;
 
 function dir(const Mask: string): integer; overload;
 var
@@ -6596,69 +6072,6 @@ begin
   perfStep;
   _perfFName := '';
 end;
-{$ifdef MSWINDOWS}
-
-Procedure PostKeyEx32(key: Word; Const shift: TShiftState; specialkey: boolean);
-{ ************************************************************
-  * Procedure PostKeyEx32
-  *
-  * Parameters:
-  *  key    : virtual keycode of the key to send. For printable
-  *           keys this is simply the ANSI code (Ord(character)).
-  *  shift  : state of the modifier keys. This is a set, so you
-  *           can set several of these keys (shift, control, alt,
-  *           mouse buttons) in tandem. The TShiftState type is
-  *           declared in the Classes Unit.
-  *  specialkey: normally this should be False. Set it to True to
-  *           specify a key on the numeric keypad, for example.
-  * Description:
-  *  Uses keybd_event to manufacture a series of key events matching
-  *  the passed parameters. The events go to the control with focus.
-  *  Note that for characters key is always the upper-case version of
-  *  the character. Sending without any modifier keys will result in
-  *  a lower-case character, sending it with [ssShift] will result
-  *  in an upper-case character!
-  ************************************************************ }
-
-// JvKeyBoardStates
-// JvgUtils
-
-Type
-  TShiftKeyInfo = Record
-    shift: byte;
-    vkey: byte;
-  End;
-
-  byteset = Set of 0 .. 7;
-Const
-  shiftkeys: Array [1 .. 3] of TShiftKeyInfo = ((shift: ord(ssCtrl); vkey: VK_CONTROL), (shift: ord(ssShift);
-    vkey: VK_SHIFT), (shift: ord(ssAlt); vkey: VK_MENU));
-Var
-  flag: dword;
-  bShift: byteset absolute shift;
-  i: integer;
-Begin
-  For i := 1 To 3 Do
-  Begin
-    If shiftkeys[i].shift In bShift Then
-      keybd_event(shiftkeys[i].vkey, MapVirtualKey(shiftkeys[i].vkey, 0), 0, 0);
-  End; { For }
-  if specialkey Then
-    flag := KEYEVENTF_EXTENDEDKEY
-  Else
-    flag := 0;
-
-  keybd_event(key, MapVirtualKey(key, 0), flag, 0);
-  flag := flag or KEYEVENTF_KEYUP;
-  keybd_event(key, MapVirtualKey(key, 0), flag, 0);
-
-  For i := 3 DownTo 1 Do
-  Begin
-    If shiftkeys[i].shift In bShift Then
-      keybd_event(shiftkeys[i].vkey, MapVirtualKey(shiftkeys[i].vkey, 0), KEYEVENTF_KEYUP, 0);
-  End; { For }
-End; { PostKeyEx32 }
-{$endif}
 
 var
  _StartDebugFName : string = '';
@@ -6672,11 +6085,7 @@ begin
   begin
     if (_StartDebugFName='') then
     begin
-     {$ifdef fpc}
      _StartDebugFName := GetUserDir + StartDebugLogFName;
-     {$else}
-     _StartDebugFName := GetEnvironmentVariable('USERPROFILE') + DirectorySeparator + StartDebugLogFName;
-     {$endif}
      {$ifdef CONSOLE}
      writeln('Start-Debug-Log ... ' + _StartDebugFName);
      {$endif}
@@ -6797,15 +6206,4 @@ initialization
 
  StartDebugger := IsParam('--d');
  StartDebug('anfix');
-
-finalization
-
-{$ifdef MSWINDOWS}
- if CPUUsageInit then
- begin
-   ReleaseCPUData;
-   FreeMem(_PerfData);
- end;
-{$endif}
-
 end.
