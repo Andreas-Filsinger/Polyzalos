@@ -43,16 +43,6 @@ interface
 uses
   // System
   Classes,
-{$ifndef fpc}
-  // IB-Objects
-  IB_Access,
-  IB_Components,
-  {$ifndef IBO_OLD}
-  IB_ClientLib,
-  {$endif}
- // XLS
-  FlexCel.xlsAdapter,
-{$endif}
 
   // Tools
   gplists, CareTakerClient, anfix,
@@ -897,15 +887,7 @@ begin
       // ACHTUNG: Reihenfolge nicht verändern, nur erweitern!
       // ==========================================================
       { 01 } add(cAppName);
-{$IFDEF fpc}
       { 02 } add('Zeos Rev. ' + ZEOS_VERSION);
-{$ELSE}
-{$IFDEF CONSOLE}
-      { 02 } add('IBO Rev. ' + fbConnection.Version);
-{$ELSE}
-      { 02 } add('IBO Rev. ' + Datamoduledatenbank.IB_connection1.Version);
-{$ENDIF}
-{$ENDIF}
       { 03 } add(gsIdProductName + ' Rev. ' + gsIdVersion); // Indy
       { 04 } add(iPDFPathPublicShop);
       { 05 } add(iMusicPathShop);
@@ -918,39 +900,20 @@ begin
 {$ELSE}
       { 08 } add('N/A');
 {$ENDIF}
-{$IFDEF fpc}
-      { 09 } add('fpspreadsheet Rev. ' + 'N/A');
-{$ELSE}
-      { 09 } add('TMS FlexCel Rev. ' + FlexCelVersion);
-{$ENDIF}
-{$IFDEF fpc}
+      { 09 } add('fpspreadsheet Rev. N/A');
       { 10 } add('IBX Rev. ' + IBX_VERSION);
-{$ELSE}
-      { 10 } add('jcl Rev. ' + IntToStr(JclVersionMajor) + '.' +
-        IntToStr(JclVersionMinor));
-{$ENDIF}
-{$ifdef FPC}
-      { 11 } add('fpc Rev. //imp pend');
-{$else}
-{$IFDEF CONSOLE}
-      { 11 } add('jvcl Rev. N/A');
-{$ELSE}
-      { 11 } add('jvcl Rev. ' + JVCL_VERSIONSTRING);
-{$ENDIF}
-{$endif}
+      { 11 } add('fpc Rev. '+ {$I %FPCVERSION});
       { 12 } add(iShopArtikelBilderURL);
       { 13 } add('7zip Rev. ' +  c7zip.Version);
-      { 14 } add({tgputtysftp_Version}'0.83');
+      { 14 } add({tgputtysftp_Version}'putty 0.83');
       { 15 } add(
         e_r_Kontext + '@' + GetHostName + ':' + iXMLRPCPort);
-      { 16 } add(
-        'memcache Rev. ' + RevToStr(memcache.Version) + '@' +
-        imemcachedHost);
+      { 16 } add('memcache Rev. ' + RevToStr(memcache.Version) + '@' + imemcachedHost);
       { 17 } add(iDataBaseUser);
       { 18 } add(iDataBasePassword);
-      { 19 } add(iDataBasePassword);
-      { 20 } add(e_r_fbClientVersion);
-      { 21 } add('Portable Network Graphics Delphi ' + 'N/A');
+      { 19 } add('FBIntf Rev. ' + FBIntf_Version);
+      { 20 } add('FBClient ' + e_r_fbClientVersion);
+      { 21 } add('FBServer ' + e_r_fbServerVersion);
       { 22 } add(i_c_DataBaseHost);
       { 23 } add(i_c_DataBaseFName);
 {$IFDEF CONSOLE}
@@ -960,13 +923,9 @@ begin
 {$ELSE}
       { 24 } add('N/A');
 {$ENDIF}
-{$IFDEF fpc}
-      { 25 } add('exiftool Rev. ' + 'N/A');
-{$ELSE}
-      { 25 } add('CCR.Exif Rev. ' + CCR.Exif.Consts.CCRExifVersion);
-{$ENDIF}
+      { 25 } add('dEXIF Rev. 1.0');
       { 26 } add(e_r_Kontext);
-      { 27 } add('linux');
+      { 27 } add(OSVersion);
     end;
   end;
   Result.Assign(CacheBasePlug);
@@ -1504,7 +1463,7 @@ var
         begin
           ClientCodePage := 'ISO8859_1';
           ControlsCodePage := cCP_UTF8;
-          Protocol := 'firebird-2.5';
+          Protocol := 'firebird';
           TransactIsolationLevel := tiReadCommitted;
           ReadOnly := true;
           User := 'SYSDBA';
@@ -2403,67 +2362,5 @@ begin
 
   result := sSystemSettings;
 end;
-
-
-begin
-  // Datenbank - Zugriffselemente erzeugen!
-
-{$IFDEF CONSOLE}
-{$IFDEF fpc}
-  fbConnection := TZConnection.Create(nil);
-  with fbConnection do
-  begin
-    ClientCodePage := 'ISO8859_1';
-    ControlsCodePage := cCP_UTF8;
-    Protocol := 'firebird-2.5';
-    TransactIsolationLevel := tiReadCommitted;
-  end;
-{$ELSE}
-  {$ifndef IBO_OLD}
-  fbClientLib := TIB_ClientLib.Create(nil);
-  with fbClientLib do
-  begin
-    Filename := ExtractFilePath(ParamStr(0)) + globals.GetFBClientLibName;
-  end;
-  {$endif}
-
-  fbSession := TIB_Session.Create(nil);
-  fbTransaction := TIB_Transaction.Create(nil);
-  fbConnection := TIB_Connection.Create(nil);
-
-
-  with fbSession do
-  begin
-    {$ifndef IBO_OLD}
-    IB_ClientLib := fbClientLib;
-    {$endif}
-    AllowDefaultConnection := True;
-    AllowDefaultTransaction := True;
-    DefaultConnection := fbConnection;
-    StoreActive := False;
-    UseCursor := False;
-  end;
-
-  with fbConnection do
-  begin
-    IB_Session := fbSession;
-    CacheStatementHandles := False;
-    DefaultTransaction := fbTransaction;
-    SQLDialect := 3;
-    ParameterOrder := poNew;
-    CharSet := 'NONE';
-  end;
-
-  with fbTransaction do
-  begin
-    IB_Session := fbSession;
-    IB_Connection := fbConnection;
-    ServerAutoCommit := True;
-    Isolation := tiCommitted;
-    RecVersion := True;
-    LockWait := True;
-  end;
-{$ENDIF}
-{$ENDIF}
 
 end.

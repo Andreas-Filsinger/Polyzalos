@@ -34,9 +34,7 @@
 }
 unit dbOrgaMon;
 
-{$ifdef fpc}
 {$mode delphi}
-{$endif}
 
 interface
 
@@ -50,7 +48,6 @@ interface
 
 uses
   Classes,
-{$IFDEF fpc}
   db,
   ZConnection,
   ZClasses,
@@ -63,14 +60,6 @@ uses
   //ZStreamBlob,
   ZDbcInterbase6,
   ZSequence,
-{$ELSE}
-  IB_Components,
-  IB_Access,
-  {$ifndef IBO_OLD}
-  IB_ClientLib,
-  {$endif}
-  //Datenbank,
-{$ENDIF}
   gplists,
   WordIndex,
   anfix,
@@ -81,12 +70,10 @@ const
  DROP_BUG : boolean = true;
 
 type
-{$IFDEF fpc}
   TdboDatasource = TDatasource;
   TdboDataset = TDataset;
 
   { TdboScript }
-
   TdboScript = class(TZSQLProcessor)
   public
     function sql: TStrings;
@@ -96,7 +83,6 @@ type
   TdboField = TField;
 
   { TdboCursor }
-
   TdboCursor = class(TZReadOnlyQuery)
   public
     procedure ApiFirst;
@@ -104,21 +90,10 @@ type
   end;
 
   { TdboQuery }
-
   TdboQuery = class(TZQuery)
   public
     procedure Insert;
   end;
-
-{$ELSE}
-
-  TdboQuery = TIB_Query;
-  TdboField = TIB_Column;
-  TdboDataset = TIB_Dataset;
-  TdboDatasource = TIB_Datasource;
-  TdboCursor = TIB_Cursor;
-  TdboScript = TIB_DSQL;
-{$ENDIF}
 
 const
   cSQLwhereMarker = '-- BEGIN';
@@ -342,6 +317,7 @@ procedure e_x_dereference(dependencies: string; fromref: string; toref: string =
 
 // Server Infos
 function e_r_fbClientVersion: string;
+function e_r_fbServerVersion: string;
 function e_r_ConnectionCount: integer;
 function e_r_Revision_Latest: single;
 function e_r_Revision_Zwang: single;
@@ -349,34 +325,18 @@ function e_r_NameFromMask(iDataBaseName: string): string;
 function e_r_now: TDateTime; // aktuelles Datum+Uhrzeit aus dem Datenbankserver lesen
 function r_Local_vs_Server_TimeDifference: Integer; // Zeitdifferenz zwischen Datenbank-Server und lokalem Server
 
-{$IFDEF fpc}
-
 const
-
   fbConnection: TZConnection = nil;
-
-{$ELSE}
-
-// Globale Datenbank-Elemente
-const
-  {$ifndef IBO_OLD}
-  fbClientLib: TIB_ClientLib = nil;
-  {$endif}
-  fbConnection: TIB_Connection = nil;
-  fbTransaction: TIB_Transaction = nil;
-  fbSession: TIB_Session = nil;
-
-{$ENDIF}
 
 implementation
 
 uses
   SysUtils,
-
+  Math,
+  fpchelper,
   ZCompatibility,
   ZDbcIntfs,
-  fpchelper,
-  Math,
+  ZDbcFirebird,
   CareTakerClient;
 
 procedure ChangeWhere(q: TdboQuery; NewWhere: TStringList);
@@ -1523,32 +1483,19 @@ begin
 end;
 
 function e_r_fbClientVersion: string;
-var
-  TheModuleName: array [0 .. 1023] of char;
-  s: string;
 begin
-{$IFDEF fpc}
-  result := 'imp pend: obtain DLL-Handle';
-{$ELSE}
-  // welche Firebird Client-DLL wird verwendet
-{$IFNDEF CONSOLE}
+ if assigned(fbConnection) then
+  result := (fbConnection as TZAbstractConnection).ClientVersionStr
+ else
+  result := 'N/A';
+end;
 
-  {$ifdef IBO_OLD}
-  GetModuleFileName(DataModuleDatenbank.IB_Session1.GDS_Handle, TheModuleName, sizeof(TheModuleName));
-  {$else}
-  GetModuleFileName(DataModuleDatenbank.IB_ClientLib1.GDS_Handle, TheModuleName, sizeof(TheModuleName));
-  {$endif}
-
-{$ELSE}
-  {$ifdef IBO_OLD}
-   GetModuleFileName(fbSession.GDS_Handle, TheModuleName, sizeof(TheModuleName));
-  {$else}
-   // imp pend
-  {$endif}
-{$ENDIF}
-  s := TheModuleName;
-  result := s + ' ' + FileVersion(TheModuleName);
-{$ENDIF}
+function e_r_fbServerVersion: string;
+begin
+ if assigned(fbConnection) then
+  result := (fbConnection as TZAbstractConnection).ServerVersionStr
+ else
+  result := 'N/A';
 end;
 
 function isRID(RID: integer): string;
@@ -1938,29 +1885,12 @@ end;
 procedure e_x_sql(s: string);
 begin
   dbLog(s,false);
-{$IFDEF fpc}
   fbConnection.ExecuteDirect(s);
-{$ELSE}
-{$IFDEF CONSOLE}
-  fbTransaction.ExecuteImmediate(s);
-{$ELSE}
-  Datamoduledatenbank.IB_Transaction_W.ExecuteImmediate(s);
-{$ENDIF}
-{$ENDIF}
 end;
 
 procedure e_x_commit;
 begin
-{$IFDEF fpc}
   fbConnection.commit;
-{$ELSE}
-{$IFDEF CONSOLE}
-  // In der Konsolenanwendung haben wir nur *eine* Transaktion, ein commit war bisher
-  // nicht notwendig
-{$ELSE}
-  Datamoduledatenbank.IB_Transaction_R.commit;
-{$ENDIF}
-{$ENDIF}
 end;
 
 function e_w_GEN(GenName: string): integer;
@@ -2102,60 +2032,20 @@ end;
 
 function nQuery: TdboQuery;
 begin
-{$IFDEF fpc}
   result := TdboQuery.create(nil);
   result.connection := fbConnection;
-{$ELSE}
-{$IFDEF CONSOLE}
-  result := TIB_Query.create(nil);
-  with result do
-  begin
-    ib_connection := fbConnection;
-    IB_Session := fbSession;
-  end;
-{$ELSE}
-  result := Datamoduledatenbank.nQuery;
-{$ENDIF}
-{$ENDIF}
 end;
 
 function nCursor: TdboCursor;
 begin
-{$IFDEF fpc}
   result := TdboCursor.create(niL);
   result.connection := fbConnection;
-{$ELSE}
-{$IFDEF CONSOLE}
-  result := TIB_Cursor.create(nil);
-  with result do
-  begin
-    ib_connection := fbConnection;
-    IB_Session := fbSession;
-  end;
-{$ELSE}
-  result := Datamoduledatenbank.nCursor;
-  result.IB_Transaction := Datamoduledatenbank.IB_Transaction_R;
-{$ENDIF}
-{$ENDIF}
 end;
 
 function nScript: TdboScript;
 begin
-{$IFDEF fpc}
   result := TdboScript.create(nil);
   result.connection := fbConnection;
-{$ELSE}
-{$IFDEF CONSOLE}
-  result := TIB_DSQL.create(nil);
-  with result do
-  begin
-    ib_connection := fbConnection;
-    IB_Session := fbSession;
-  end;
-{$ELSE}
-  result := Datamoduledatenbank.nDSQL;
-{$ENDIF}
-{$ENDIF}
 end;
 
 type
@@ -2191,7 +2081,7 @@ begin
   begin
     ClientCodePage := 'ISO8859_1';
     ControlsCodePage := cCP_UTF8;
-    Protocol := 'firebird-2.5';
+    Protocol := 'firebird';
     TransactIsolationLevel := tiReadCommitted;
     User := iDataBaseUser;
     HostName := i_c_DataBaseHost;
@@ -2299,7 +2189,6 @@ end;
 
 function e_r_ConnectionCount: integer;
 begin
-
   if (CCM = eCCM_unchecked) then
   begin
     if (e_r_sql(
@@ -2915,4 +2804,14 @@ begin
   end;
 end;
 
+initialization
+  // Datenbank - Zugriffselemente erzeugen!
+  fbConnection := TZConnection.Create(nil);
+  with fbConnection do
+  begin
+    ClientCodePage := 'ISO8859_1';
+    ControlsCodePage := cCP_UTF8;
+    Protocol := 'firebird';
+    TransactIsolationLevel := tiReadCommitted;
+  end;
 end.

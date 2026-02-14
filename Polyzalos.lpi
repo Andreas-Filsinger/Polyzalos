@@ -166,6 +166,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="HTTP2"/>
       </Unit>
+      <Unit>
+        <Filename Value="src/dbOrgaMon.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

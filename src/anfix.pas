@@ -519,6 +519,7 @@ function getParam(x: string): string;
 function GetUserName : string;
 function PersonalDataDir : string;
 function ComputerName: string;
+function OSVersion: string;
 
 // Graphische Utils
 function rXL(r: TRect): integer;
@@ -3318,6 +3319,28 @@ end;
 function ComputerName: string;
 begin
  result := unix.GetHostName;
+end;
+
+function OSVersion : string;
+const
+ osVersionF = '/proc/version';
+var
+ s : TStringList;
+begin
+ repeat
+  if not(FileExists(osVersionF)) then
+  begin
+    result := 'N/A';
+    break;
+  end;
+  s := TStringList.create;
+  s.LoadFromFile('/proc/version');
+  if (s.Count>0) then
+   result := s[0]
+  else
+   result := '';
+  s.free;
+ until yet;
 end;
 
 function GetUserName : string;

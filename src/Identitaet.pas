@@ -48,6 +48,7 @@ procedure RunAsTWebShop;
 procedure RunAsTagesabschluss;
 procedure RunAsTagwache;
 procedure RunAsMagneto;
+procedure RunAsPolyzalos;
 
 implementation
 
@@ -95,7 +96,8 @@ type
                   id_Tagesabschluss,
                   id_Tagwache,
                   id_Magneto,
-                  id_Help);
+                  id_Help,
+                  id_Polyzalos);
 
 var
   Ident: TIndentitaet;
@@ -990,7 +992,7 @@ end;
 procedure setIdentitaetAndRun;
 begin
   // Bestimmen in welchem Modus das Programm laufen soll
-  Ident := id_TWebShop;
+  Ident := id_Polyzalos;
   repeat
     if IsParam('--help') then
     begin
@@ -1037,6 +1039,11 @@ begin
       Ident := id_Magneto;
       break;
     end;
+    if IsParam('--webshop') then
+    begin
+      Ident := id_TWebShop;
+      break;
+    end;
   until yet;
 
   // Ident- String
@@ -1061,6 +1068,8 @@ begin
       Modus := 'Magento';
     id_Help:
       Modus := 'Hilfe';
+    id_Polyzalos:
+      Modus := 'Polyzalos';
   end;
 
   try
@@ -1137,6 +1146,11 @@ begin
            end;
           until yet;
           writeln('https://wiki.orgamon.org/index.php?title=cOrgaMon');
+        end;
+      id_Polyzalos:
+        begin
+          connectOrgamon;
+          RunAsPolyzalos;
         end
     else
       RunAsUnImplemented;
@@ -1210,6 +1224,17 @@ begin
     sleep(1000);
   XMLRPC.free;
   Magneto.Free;
+end;
+
+procedure RunAsPolyzalos;
+var
+   s: TStringList;
+   n: integer;
+begin
+ s := e_r_BasePlug;
+ for n := 0 to pred(s.count) do
+  writeln(s[n]);
+s.free;
 end;
 
 end.
