@@ -905,15 +905,15 @@ begin
       { 11 } add('fpc Rev. '+ {$I %FPCVERSION});
       { 12 } add(iShopArtikelBilderURL);
       { 13 } add('7zip Rev. ' +  c7zip.Version);
-      { 14 } add({tgputtysftp_Version}'putty 0.83');
+      { 14 } add({tgputtysftp_Version}'tgputty 0.83');
       { 15 } add(
         e_r_Kontext + '@' + GetHostName + ':' + iXMLRPCPort);
       { 16 } add('memcache Rev. ' + RevToStr(memcache.Version) + '@' + imemcachedHost);
       { 17 } add(iDataBaseUser);
       { 18 } add(iDataBasePassword);
       { 19 } add('FBIntf Rev. ' + FBIntf_Version);
-      { 20 } add('FBClient ' + e_r_fbClientVersion);
-      { 21 } add('FBServer ' + e_r_fbServerVersion);
+      { 20 } add('FirebirdSQL-Client ' + e_r_fbClientVersion);
+      { 21 } add('FirebirdSQL-Server ' + e_r_fbServerVersion);
       { 22 } add(i_c_DataBaseHost);
       { 23 } add(i_c_DataBaseFName);
 {$IFDEF CONSOLE}

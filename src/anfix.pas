@@ -3334,7 +3334,7 @@ begin
     break;
   end;
   s := TStringList.create;
-  s.LoadFromFile('/proc/version');
+  s.LoadFromFile(osVersionF);
   if (s.Count>0) then
    result := s[0]
   else
