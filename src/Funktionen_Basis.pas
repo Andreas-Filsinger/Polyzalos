@@ -185,13 +185,7 @@ uses
   IB,
   // IBX4Lazarus
   IBVersion, IBXServices,
-  fpchelper,
-{$IFNDEF CONSOLE}
-  Datenbank,
-{$ifndef FPC}
-  JvclVer,
-{$endif}
-{$ENDIF}
+  fpchelper, wanfix,
   idglobal, SolidFTP,
 
   c7zip, WordIndex, ExcelHelper,
@@ -932,9 +926,40 @@ begin
 end;
 
 function e_r_Bearbeiter: integer;
+var
+ qUSER: TdboQuery;
+ c : TColorRec;
 begin
-  Result := e_r_sql('select RID from BEARBEITER where UPPER(USERNAME)=''' +
+  repeat
+   Result := e_r_sql('select RID from BEARBEITER where UPPER(USERNAME)=''' +
     AnsiUpperCase(GetUserName) + '''');
+
+    // Auto Create
+    if (Result<cRID_FirstValid) then
+    begin
+      qUSER := nQuery;
+      with qUSER do
+      begin
+        sql.add('select * from BEARBEITER for update');
+        insert;
+        Integer(c) := 0;
+        c.R:=random(256);
+        c.G:=random(256);
+        c.B:=random(256);
+        FieldByName('RID').AsInteger := cRID_Unset;
+        FieldByName('FARBE_HINTERGRUND').AsInteger := Integer(c);
+        FieldByName('FARBE_VORDERGRUND').AsInteger := VisibleContrast(FieldByName('FARBE_HINTERGRUND').AsInteger);
+        FieldByName('USERNAME').AsString := GetUserName;
+        FieldByName('KUERZEL').AsString := GetUserName;
+        post;
+      end;
+      qUSER.free;
+    end else
+    begin
+      break;
+    end;
+
+  until Eternity;
 end;
 
 function e_r_BearbeiterKuerzel(BEARBEITER_R: integer): string;
@@ -1006,9 +1031,11 @@ end;
 
 procedure e_w_PersonSetPassword(PERSON_R: integer);
 begin
-  e_x_sql('update PERSON set' + ' USER_PWD=''' + FindANewPassword +
-    ''',' + ' USER_SALT=''' + FindANewPassword + '''' + ' where RID=' +
-    IntToStr(PERSON_R));
+  e_x_sql(
+   {} 'update PERSON set' +
+   {} ' USER_PWD=''' + FindANewPassword + ''',' +
+   {} ' USER_SALT=''' + FindANewPassword + '''' +
+   {} ' where RID=' + IntToStr(PERSON_R));
 end;
 
 procedure e_w_PersonEnsurePassword(PERSON_R: integer);

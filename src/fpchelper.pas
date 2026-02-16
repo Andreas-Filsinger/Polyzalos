@@ -35,9 +35,6 @@ interface
 
 uses
   SysUtils, Classes,
-  {$ifndef console}
-  Graphics,
-  {$endif}
   gettext, DCPcrypt2, DCPmd5;
 
 const
@@ -45,16 +42,12 @@ const
   PIPE_UNLIMITED_INSTANCES = 255;
      SW_HIDE = 0;
      MOVEFILE_WRITE_THROUGH = 8;
-     {$ifdef console}
      console_red : RawByteString = #27'[91m';
      console_green : RawByteString = #27'[92m';
      console_white : RawByteString = #27'[0m';
-     {$endif}
 
 type
-  {$ifdef console}
   TColor = Integer;
-  {$endif}
   TColorRec = record
     const
   SystemColor = $FF000000;
@@ -300,6 +293,12 @@ type
 end;
   TColors = TColorRec;
 
+  // Farb-Sachen
+  function VisibleContrast(BackGroundColor: TColor): TColor;
+  function ColorBrightness(Color: TColor; RGB_delta: integer): TColor;
+  function ColorDistance(c1, c2: TColor): integer; // 0..3*255
+
+
 const
   MaxWord = 65535;
   NativeNull           = Char(#0);
@@ -425,22 +424,13 @@ type
 implementation
 
 uses
-  Unix
-  , FileUtil
-{$ifndef console}
-, LCLIntf
-{$endif}
- ;
+  Math, Unix, FileUtil, lclType, graphics;
 
-{$IFNDEF DELPHI12}
-{$IFNDEF DELPHI14}
 // define  CharInSet for Delphi 2007 or earlier
 function CharInSet(const C: Char; const testSet: TSysCharSet): Boolean;
 begin
   Result := C in testSet;
 end;
-{$ENDIF}
-{$ENDIF}
 
 function CharIsAlpha(const C: Char): Boolean;
 begin
@@ -945,5 +935,44 @@ begin
   result := AnsiLowerCase(PAnsiChar(HashS));
   end;
 end;
+
+function ColorBrightness(Color: TColor; RGB_delta: integer): TColor;
+begin
+  with TRGBQuad(Color) do
+  begin
+    rgbRed := min(rgbRed + RGB_delta, 255);
+    rgbGreen := min(rgbGreen + RGB_delta, 255);
+    rgbBlue := min(rgbBlue + RGB_delta, 255);
+  end;
+  result := Color;
+end;
+
+function VisibleContrast(BackGroundColor: TColor): TColor;
+const
+  cHalfBrightness = ((0.3 * 255.0) + (0.59 * 255.0) + (0.11 * 255.0)) / 2.0;
+var
+  Brightness: double;
+begin
+  with TRGBQuad(BackGroundColor) do
+    Brightness := (0.3 * rgbRed) + (0.59 * rgbGreen) + (0.11 * rgbBlue);
+  if (Brightness > cHalfBrightness) then
+    result := clblack
+  else
+    result := clwhite;
+end;
+
+function ColorDistance(c1, c2: TColor): integer; // 0..3*255
+var
+  Distance: double;
+  cc1: TRGBQuad absolute c1;
+  cc2: TRGBQuad absolute c2;
+begin
+  Distance :=
+   (0.3 * abs(cc1.rgbRed - cc2.rgbRed)) +
+   (0.59 * abs(cc1.rgbGreen - cc2.rgbGreen)) +
+   (0.11 * abs(cc1.rgbBlue - cc2.rgbBlue));
+  result := round(Distance);
+end;
+
 
 end.
