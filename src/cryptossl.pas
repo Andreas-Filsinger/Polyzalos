@@ -33,9 +33,9 @@ unit cryptossl;
 interface
 
 uses
-  ctypes,
-  Classes,
-  Sysutils;
+ unix, baseunix,
+ ctypes, lcltype,
+ Classes, Sysutils;
 
 var
   // Debug-Messages from Socket or SSL

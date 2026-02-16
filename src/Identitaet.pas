@@ -67,6 +67,9 @@ uses
   srvXMLRPC,
   binlager,
   systemd,
+  cryptossl,
+  http2,
+  hpack,
 
   // OrgaMon-Globals
   globals,
@@ -1076,13 +1079,14 @@ begin
     //
     if not(IsParam('-dl')) then
     begin
-     writeln('┌──────────────────────────────────────────────┐');
+     writeln(console_white+'┌──────────────────────────────────────────────┐');
      writeln('│   ____       _                _              │');
      writeln('│  |  _ \ ___ | |_   _ ______ _| | ___  ___    │');
      writeln('│  | |_) / _ \| | | | |_  / _` | |/ _ \/ __|   │');
      writeln('│  |  __/ (_) | | |_| |/ / (_| | | (_) \__ \   │');
      writeln('│  |_|   \___/|_|\__, /___\__,_|_|\___/|___/   │');
-     writeln('│  Rev. ' + RevToStr(globals.version) + '    |___/                 linux   │');
+     writeln('│  Rev. ' + RevToStr(globals.version) + '    |___/                 ' + console_green + 'linux' +console_white  + '   │');
+     writeln('│                                              │');
      writeln('└──────────────────────────────────────────────┘');
     end;
     writeln(
@@ -1226,15 +1230,89 @@ begin
   Magneto.Free;
 end;
 
+var
+ HTTPS: THTTP2_Connection;
+
+
+procedure Request(R: TStringList);
+var
+  C : RawByteString;
+  RequestedResourceName : string;
+  ID : Integer;
+  l : integer;
+begin
+ writeln('{ ----------');
+ for l := 0 to pred(R.count) do
+  writeln(R[l]);
+ writeln('---------- }');
+
+ RequestedResourceName := R.Values[':path'];
+ ID := StrToIntDef(R.Values[CONTEXT_HEADER_STREAM_ID],0);
+
+ writeln('Answering to '+RequestedResourceName+'@'+IntTOStr(ID)+ '...');
+
+ if (RequestedResourceName='/') then
+  RequestedResourceName := 'index.html';
+
+ // deliver a file
+ with HTTPS do
+ begin
+   with HEADERS_OUT do
+   begin
+    clear;
+    add(':status=200');
+    add('date='+Date);
+    add('server='+Server);
+    add('content-type='+ContentTypeOf(RequestedResourceName));
+     // Cross-Origin-Opener-Policy: same-origin
+    // Cross-Origin-Embedder-Policy: require-corp
+    encode;
+   end;
+   store(r_Header(ID));
+   storeFile(RequestedResourceName,ID);
+   write;
+ end;
+
+ R.Free;
+end;
+
+
 procedure RunAsPolyzalos;
 var
-   s: TStringList;
-   n: integer;
+ s: TStringList;
+ n: integer;
+ FD: longint;
+
 begin
+ // Prepare
  s := e_r_BasePlug;
  for n := 0 to pred(s.count) do
   writeln(s[n]);
-s.free;
+ s.free;
+ systemd.Ready;
+
+ writeln(cryptossl.Version);
+
+ (*
+ repeat
+   systemd.Wuff;
+   sleep(10000);
+ until Eternity;
+ *)
+
+
+ HTTPS := THTTP2_Connection.create;
+
+ with HTTPS do
+ begin
+//   OnRequest := @Request;
+   //ShowDebugmessages;
+   CTX:= StrictHTTP2Context;
+   Path := '/mnt/r/srv/hosts/';
+   FD := getSocket;
+   Accept(FD);
+ end;
+
 end;
 
 end.

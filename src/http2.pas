@@ -39,9 +39,9 @@ unit HTTP2;
 interface
 
 uses
-  cTypes,
+ cTypes,
   Classes,
-  SysUtils,
+  SysUtils, Math,
   unicodedata,
 
   // Tools
@@ -242,7 +242,6 @@ Type
        procedure enqueue(D: RawByteString);
        procedure LogStreamWindowSizes;
 
-
        // Events
        procedure Noise; // incoming data
        procedure Error; // problem info
@@ -270,9 +269,9 @@ function getSocket: cint;
 implementation
 
 uses
+ sd_daemon,
  fpchelper,
- Windows, // sollte wieder entfallen nur wegen GetLAstError
- sockets,
+ BaseUnix, Unix, Sockets,
  systemd;
 
 type
@@ -1804,8 +1803,8 @@ end;
 
 procedure THTTP2_Connection.write;
 var
- BytesToSend, TotalBytesWritten: int64;
- SSL_Result, SSL_Error, SSL_Rounds,written : cint;
+ BytesToSend, TotalBytesWritten,written: int64;
+ SSL_Result, SSL_Error, SSL_Rounds : cint;
  buf: Pointer;
 begin
  // nothing to send
@@ -2137,7 +2136,7 @@ begin
        if fpsetsockopt(ListenSocket, IPPROTO_TCP, TCP_NODELAY, @flag, sizeof(LongInt))<0 then
         raise Exception.Create('Server: Socket: can not set TCP_NODELAY ');
 
-       // FpFcntl(ListenSocket, F_SetFl, FpFcntl(ListenSocket, F_GetFl) or O_NONBLOCK);
+       FpFcntl(ListenSocket, F_SetFl, FpFcntl(ListenSocket, F_GetFl) or O_NONBLOCK);
 
 
        // bind to interface

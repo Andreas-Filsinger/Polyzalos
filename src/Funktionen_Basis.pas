@@ -185,7 +185,7 @@ uses
   IB,
   // IBX4Lazarus
   IBVersion, IBXServices,
-  fpchelper, wanfix,
+  fpchelper,
   idglobal, SolidFTP,
 
   c7zip, WordIndex, ExcelHelper,
@@ -946,7 +946,7 @@ begin
         c.R:=random(256);
         c.G:=random(256);
         c.B:=random(256);
-        FieldByName('RID').AsInteger := cRID_Unset;
+        FieldByName('RID').AsInteger := cRID_AutoInc;
         FieldByName('FARBE_HINTERGRUND').AsInteger := Integer(c);
         FieldByName('FARBE_VORDERGRUND').AsInteger := VisibleContrast(FieldByName('FARBE_HINTERGRUND').AsInteger);
         FieldByName('USERNAME').AsString := GetUserName;

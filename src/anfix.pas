@@ -99,10 +99,6 @@ const
     'Nov', 'Dez');
 
 const
-  // Win32
-  BELOW_NORMAL_PRIORITY_CLASS = $4000;
-  ABOVE_NORMAL_PRIORITY_CLASS = $8000;
-
   // FSize()
   cFSize_NotExists = -1;
   cFSize_Null = -2;
@@ -576,7 +572,7 @@ implementation
 
 uses
   DateUtils, LConvEncoding, FileUtil,
-  BaseUnix, unix,
+  BaseUnix, unix, sd_daemon,
   fpchelper,
   math,
   registry;
@@ -3340,6 +3336,8 @@ begin
   else
    result := '';
   s.free;
+  if sd_booted>0 then
+   result := result + ' systemd';
  until yet;
 end;
 

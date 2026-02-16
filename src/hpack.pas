@@ -2607,9 +2607,7 @@ function NowGMT: TDateTime;
 var
   ST: TSystemTime;
 begin
-  // This Windows API function gets system time in UTC/GMT
-  // see http://msdn.microsoft.com/en-us/library/ms724390
-  GetSystemTime(ST);
+  GetLocalTime(ST);
   Result := SystemTimeToDateTime(ST);
 end;
 

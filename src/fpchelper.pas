@@ -426,7 +426,6 @@ implementation
 uses
   Math, Unix, FileUtil, lclType, graphics;
 
-// define  CharInSet for Delphi 2007 or earlier
 function CharInSet(const C: Char; const testSet: TSysCharSet): Boolean;
 begin
   Result := C in testSet;

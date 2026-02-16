@@ -1,34 +1,6 @@
-{
-  |      ___                  __  __
-  |     / _ \ _ __ __ _  __ _|  \/  | ___  _ __
-  |    | | | | '__/ _` |/ _` | |\/| |/ _ \| '_ \
-  |    | |_| | | | (_| | (_| | |  | | (_) | | | |
-  |     \___/|_|  \__, |\__,_|_|  |_|\___/|_| |_|
-  |               |___/
-  |
-  |    Copyright (C) 2007 - 2020  Andreas Filsinger
-  |
-  |    This program is free software: you can redistribute it and/or modify
-  |    it under the terms of the GNU General Public License as published by
-  |    the Free Software Foundation, either version 3 of the License, or
-  |    (at your option) any later version.
-  |
-  |    This program is distributed in the hope that it will be useful,
-  |    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  |    GNU General Public License for more details.
-  |
-  |    You should have received a copy of the GNU General Public License
-  |    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  |
-  |    http://orgamon.org/
-  |
-}
 unit systemd;
 
-{$ifdef FPC}
 {$mode objfpc}{$H+}
-{$endif}
 
 // #
 // # OS - Wrapper
@@ -54,19 +26,15 @@ const
    SD_LISTEN_FDS_START = 3;
 
 // systemd
-function sd_notify(h:Integer; s:string) : Integer;
-function sd_listen_fds(h:Integer) : Integer;
+function RunningAsService: Boolean;
+procedure Wuff;
+procedure Ready;
 
 implementation
 
 uses
- anfix, CareTakerClient,
- {$ifndef FPC}
- windows,
- JclMiscel,
- {$else}
+ sd_daemon, anfix, CareTakerClient,
  fpchelper,
- {$endif}
  IdUDPClient,
  SysUtils;
 
@@ -96,17 +64,20 @@ begin
    AppendStringsToFile(BoolToStr(result), DebugLogPath + 'SYSTEMD-' + DatumLog + cLogExtension, Uhr8);
 end;
 
-function sd_notify(h: Integer; s: string): Integer;
-// sample:     sd_notify( 0, "RELOADING=1\nSTATUS=50% done\n" );
-// sample
+function RunningAsService: Boolean;
 begin
- result := -1;
+ result := GetEnvironmentVariable('INVOCATION_ID')<>'';
 end;
 
-function sd_listen_fds(h: Integer): Integer;
+procedure Wuff;
 begin
- result := -1;
+ sd_notify(0, 'WATCHDOG=1')
+end;
 
+procedure Ready;
+begin
+ // sample before:     sd_notify( 0, "RELOADING=1\nSTATUS=50% done\n" );
+ sd_notify(0, 'READY=1')
 end;
 
 const
@@ -121,8 +92,6 @@ var
  k : integer;
  ErrorMsg: string;
 begin
-
-
   repeat
 
      result := TStringList.Create;
