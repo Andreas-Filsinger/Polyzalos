@@ -598,7 +598,6 @@ var
       PEndLine := Length(S) + 1
     else
       Comment := Copy(S, PEndLine + 1, Length(S) - PEndLine);
-
     PEqual := Pos('=', S);
     if PEqual > 0 then
     begin
@@ -606,7 +605,6 @@ var
       begin
         Key := Copy(S, 1, PEqual - 1);
         Value := Trim(Copy(S, PEqual + 1, PEndLine - PEqual - 1));
-
         Result := True;
       end;
     end;
