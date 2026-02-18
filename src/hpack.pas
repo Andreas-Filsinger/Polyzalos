@@ -39,10 +39,7 @@ unit HPACK;
 interface
 
 uses
-   {$ifdef windows}
-   windows,
-   {$endif}
-   Classes, SysUtils;
+  Classes, SysUtils;
 
 const
  DEFAULT_MAXIMUM_TABLE_SIZE = 4096;

@@ -1,6 +1,6 @@
 (* anfix - low level Tools
 
-  Copyright (C) 2007 - 2026  Andreas Filsinger
+  Copyright (C) 2000 - 2026  Andreas Filsinger
 
   |  Permission is hereby granted, free of charge, to any person obtaining a copy
   |  of this software and associated documentation files (the "Software"), to deal
@@ -3690,182 +3690,6 @@ begin
   Stream.free;
 end;
 
-var
- _Betriebssystem : string = '';
-
-function Betriebssystem: string;
-
-{$IFDEF fpc}
-{$IFDEF UNIX}
-var
-  Name: UtsName;
-begin
-  FpUname(name);
-  with name do
-    result := Sysname + Release + Version;
-end;
-{$ELSE}
-begin
-  result := 'Windows';
-end;
-{$ENDIF}
-{$ELSE}
-
-type
-  Twine_get_version = function: PAnsiChar; stdcall;
-var
-  HNtDll: HMODULE;
-  wine_get_version: Twine_get_version;
-begin
- if (_Betriebssystem='') then
- begin
-  HNtDll := LoadLibrary('ntdll.dll');
-  if (HNtDll > HINSTANCE_ERROR) then
-  begin
-    wine_get_version := GetProcAddress(HNtDll, 'wine_get_version');
-    if assigned(wine_get_version) then
-      _Betriebssystem := 'wine-' + wine_get_version
-    else
-      _Betriebssystem := GetOSVersionString;
-    FreeLibrary(HNtDll);
-  end;
- end;
- result := _Betriebssystem;
-end;
-{$ENDIF}
-// WIN REBOOT
-
-{$ifdef MSWINDOWS}
-
-function SetPrivilege(privilegeName: string; enable: boolean): boolean;
-var
-  tpPrev, tp: TTokenPrivileges;
-  token: THandle;
-  dwRetLen: dword;
-begin
-  result := false;
-  OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, token);
-  tp.PrivilegeCount := 1;
-  if LookupPrivilegeValue(nil, PCHAR(privilegeName), tp.Privileges[0].LUID) then
-  begin
-    if enable then
-      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED
-    else
-      tp.Privileges[0].Attributes := 0;
-    dwRetLen := 0;
-    result := windows.AdjustTokenPrivileges(token, false, tp, SizeOf(tpPrev), tpPrev, dwRetLen);
-  end;
-  CloseHandle(token);
-end;
-
-(*
-  WinReboot1.WinExit(EW_REBOOTSYSTEM); windows
-  WinReboot1.WinExit(EWX_SHUTDOWN or EWX_FORCE);
-
-  {$EXTERNALSYM EW_RESTARTWINDOWS}
-  EW_RESTARTWINDOWS        = $0042;
-  {$EXTERNALSYM EW_REBOOTSYSTEM}
-  EW_REBOOTSYSTEM          = $0043;
-  {$EXTERNALSYM EW_EXITANDEXECAPP}
-  EW_EXITANDEXECAPP        = $0044;
-
-  {$EXTERNALSYM ENDSESSION_LOGOFF}
-  ENDSESSION_LOGOFF        = DWORD($80000000);
-
-  {$EXTERNALSYM EWX_LOGOFF}
-  EWX_LOGOFF = 0;
-  {$EXTERNALSYM EWX_SHUTDOWN}
-  EWX_SHUTDOWN = 1;
-  {$EXTERNALSYM EWX_REBOOT}
-  EWX_REBOOT = 2;
-  {$EXTERNALSYM EWX_FORCE}
-  EWX_FORCE = 4;
-  {$EXTERNALSYM EWX_POWEROFF}
-  EWX_POWEROFF = 8;
-  {$EXTERNALSYM EWX_FORCEIFHUNG}
-  EWX_FORCEIFHUNG = $10;
-*)
-
-function WinNT: boolean;
-begin
-  result := (Win32Platform = VER_PLATFORM_WIN32_NT);
-end;
-
-function WindowsClose(flags: integer): boolean;
-begin
-  if WinNT then
-    SetPrivilege('SeShutdownPrivilege', true);
-  result := ExitWindowsEx(flags, 0);
-  if WinNT then
-    SetPrivilege('SeShutdownPrivilege', false);
-end;
-
-procedure WindowsHerunterfahren;
-begin
-  WindowsClose(EWX_SHUTDOWN or EWX_FORCE);
-end;
-
-// procedure WindowsNeuStarten;
-// begin
-// WindowsClose(EW_REBOOTSYSTEM);
-// end;
-
-function NewAdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: bool; const NewState: TTokenPrivileges;
-  BufferLength: dword; PreviousState: PTokenPrivileges; ReturnLength: pdword): bool; stdcall;
-  external advapi32 name 'AdjustTokenPrivileges';
-
-procedure WindowsNeuStarten;
-{ Restarts the computer. The function will NOT return if it is successful,
-  since Windows kills the process immediately after sending it a WM_ENDSESSION
-  message. }
-
-  procedure RestartErrorMessage;
-  begin
-    MessageBox(0, PCHAR('Neustart nicht möglich'), PCHAR('Fehler'), MB_OK or MB_ICONEXCLAMATION);
-  end;
-
-var
-  token: THandle;
-  TokenPriv: TTokenPrivileges;
-const
-  SE_SHUTDOWN_NAME = 'SeShutdownPrivilege'; { don't localize }
-begin
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-  begin
-    if not OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, token) then
-    begin
-      RestartErrorMessage;
-      exit;
-    end;
-
-    LookupPrivilegeValue(nil, SE_SHUTDOWN_NAME, TokenPriv.Privileges[0].LUID);
-
-    TokenPriv.PrivilegeCount := 1;
-    TokenPriv.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
-
-    NewAdjustTokenPrivileges(token, false, TokenPriv, 0, nil, nil);
-
-    { Cannot test the return value of AdjustTokenPrivileges. }
-    if GetLastError <> ERROR_SUCCESS then
-    begin
-      RestartErrorMessage;
-      exit;
-    end;
-  end;
-  if not ExitWindowsEx(EWX_REBOOT or EWX_FORCE or EWX_FORCEIFHUNG, 0) then
-    RestartErrorMessage;
-
-  { If ExitWindows/ExitWindowsEx were successful, program execution halts here
-    (at least on Win95) }
-end;
-
-procedure WindowsAbmelden;
-begin
-  // %windir%\system32\rundll32.exe user32.dll,LockWorkStation
-end;
-
-{$ENDIF}
-
 const
   MacCodeTable: array [0 .. 255] of AnsiChar =
 
@@ -4017,7 +3841,6 @@ begin
   result := (GetTickCount - TickStart) div 1000;
 end;
 
-{$ifdef fpc}
 function RDTSC: int64;
 begin
   asm
@@ -4026,15 +3849,6 @@ begin
     rdtsc
   end;
 end;
-
-{$else}
-function RDTSC: int64;
-asm
-  // DB 0FH
-  // DB 31H
-  rdtsc
-end;
-{$endif}
 
 function CPUMhz: integer; // Frequence of CPU-Clock [MHz]
 var

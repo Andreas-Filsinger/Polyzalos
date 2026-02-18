@@ -241,9 +241,6 @@ uses
   // Indy FTP
   IdFTPCommon, IDFtpList, IdGlobal, IdException,
   IdResourceStringsProtocols, IdFTPListParseBase, IdStack,
-{$ifndef FPC}
-  IdFTPListParseUnix, IdFTPListParseWindowsNT,
-{$endif}
   IdReplyRFC;
 
 function ValidatePathNameFTP(DestPath : string):string;

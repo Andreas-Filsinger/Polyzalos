@@ -273,13 +273,7 @@ function AddTableHashFName(FName: String): String;
 implementation
 
 uses
-  {$ifdef fpc}
   fpchelper,
-  {$endif}
-{$IFNDEF CONSOLE}
-  Dialogs,
-  WinApi.Windows,
-{$ENDIF}
   SysUtils, Anfix, html,
   // imp pend: migrate to DCPCrypt
   IdGlobal, IdHash, IdHashMessageDigest;
