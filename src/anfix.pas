@@ -572,10 +572,8 @@ implementation
 
 uses
   DateUtils, LConvEncoding, FileUtil,
-  BaseUnix, unix, sd_daemon,
-  fpchelper,
-  math,
-  registry;
+  BaseUnix, unix, fpchelper,
+  math, registry, systemd;
 
 type
   montharray = array [1 .. 13] of integer;

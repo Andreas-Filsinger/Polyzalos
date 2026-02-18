@@ -171,7 +171,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="src/sd_daemon.pas"/>
+        <Filename Value="src/PasMP.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

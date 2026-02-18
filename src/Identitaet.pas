@@ -1300,9 +1300,7 @@ begin
  until Eternity;
  *)
 
-
  HTTPS := THTTP2_Connection.create;
-
  with HTTPS do
  begin
 //   OnRequest := @Request;

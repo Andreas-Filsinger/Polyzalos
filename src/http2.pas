@@ -39,10 +39,7 @@ unit HTTP2;
 interface
 
 uses
- cTypes,
-  Classes,
-  SysUtils, Math,
-  unicodedata,
+  cTypes, Classes, SysUtils, Math, unicodedata,
 
   // Tools
   anfix,
@@ -261,7 +258,7 @@ const
   // Debug-Messages for the media Layer
   mDebug: TStringList = nil;
   CLIENT_PREFIX: RawByteString = '';
-  PING_PAYLOAD: RawByteString = 'OrgaMon9';
+  PING_PAYLOAD: RawByteString = 'OrgaMon9';      // Polyzalos
   PathToTests: string = '';
 
 function getSocket: cint;
@@ -269,9 +266,8 @@ function getSocket: cint;
 implementation
 
 uses
- sd_daemon,
- fpchelper,
  BaseUnix, Unix, Sockets,
+ fpchelper,
  systemd;
 
 type
@@ -2127,7 +2123,7 @@ begin
        // Open via a SOCKET!
 
        // create a Handle
-       ListenSocket := fpSocket (AF_INET,SOCK_STREAM, 0);
+       ListenSocket := fpSocket (AF_INET, SOCK_STREAM, 0);
        if (SocketError <> 0) then
         raise Exception.Create('Server : Socket : ');
 
@@ -2136,27 +2132,30 @@ begin
        if fpsetsockopt(ListenSocket, IPPROTO_TCP, TCP_NODELAY, @flag, sizeof(LongInt))<0 then
         raise Exception.Create('Server: Socket: can not set TCP_NODELAY ');
 
-       FpFcntl(ListenSocket, F_SetFl, FpFcntl(ListenSocket, F_GetFl) or O_NONBLOCK);
+//       FpFcntl(ListenSocket, F_SetFl, FpFcntl(ListenSocket, F_GetFl) or O_NONBLOCK);
 
 
        // bind to interface
+       len := sizeof(TInetSockAddr);
+       fillChar(ServerAddr, len, 0);
        with ServerAddr do
        begin
          sin_family:=AF_INET;
-         sin_port:=htons(443);
-         sin_addr.s_addr:=INADDR_ANY;
+         sin_port:= htons(443);
+         sin_addr.s_addr:= htonl(INADDR_ANY);
        end;
-       len := sizeof(ServerAddr);
-       if fpBind(ListenSocket,@ServerAddr,sizeof(ServerAddr))=-1 then
-        raise Exception.Create ('Server : Bind : ');
-       if fpListen (ListenSocket,1)=-1 then
-        raise Exception.Create ('Server : Listen : ');
+
+       if fpBind(ListenSocket, @ServerAddr, len)=-1 then
+        raise Exception.Create ('Server : Bind : '+IntToStr(SocketError));
+       if fpListen (ListenSocket, 1)=-1 then
+        raise Exception.Create ('Server : Listen : '+IntToStr(SocketError));
 
        ConnectionSocket := fpAccept(ListenSocket,@ClientAddr,@len);
        if (ConnectionSocket=-1) then
-        raise Exception.Create ('Server : Accept : ');
+         raise Exception.Create ('Server : Accept : '+IntToStr(SocketError));
 
        Log(NetAddrToStr(ClientAddr.sin_addr));
+
 
        result := ConnectionSocket;
 
