@@ -34,9 +34,7 @@
 }
 unit Funktionen_Transaktion;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -1591,7 +1589,7 @@ begin
       AUFTRAG_R := integer(lRID[n]);
       sQS := e_r_AuftragPlausi(AUFTRAG_R);
       if (sQS <> '') then
-        sCSV.addobject(sQS, pointer(AUFTRAG_R));
+        sCSV.addobject(sQS, TObject(PtrInt(AUFTRAG_R)));
 
       if QS_gut(sQS, sSettings) then
       begin
@@ -1604,7 +1602,7 @@ begin
     end;
     sCSV.sort;
     for n := 0 to pred(sCSV.count) do
-      sCSV[n] := '(RID=' + inttostr(integer(sCSV.objects[n])) + ') ' + sCSV[n];
+      sCSV[n] := '(RID=' + inttostr(integer(PtrInt(sCSV.objects[n]))) + ') ' + sCSV[n];
     sCSV.Insert(0, 'Bericht der Qualitätssicherung');
     sCSV.SaveToFile(DiagnosePath + 'QS.csv');
     sCSV.free;
@@ -2432,7 +2430,7 @@ var
             IMEI_LastCall.add(LastCall);
           end
           else
-            IMEI_Hits.objects[m] := TObject(succ(integer(IMEI_Hits.objects[m])));
+            IMEI_Hits.objects[m] := TObject(PtrInt(succ(integer(PtrInt(IMEI_Hits.objects[m])))));
         end;
       end;
     end;
@@ -2472,7 +2470,7 @@ begin
           edit;
           if (o <> -1) then
           begin
-            FieldByName('DAUER').AsString := inttostrN(integer(IMEI_Hits.objects[o]), 4);
+            FieldByName('DAUER').AsString := inttostrN(integer(PtrInt(IMEI_Hits.objects[o])), 4);
             FieldByName('LETZTERVERKAUF').AsString := IMEI_LastCall[o];
             IMEI_Hits.delete(o);
             IMEI_LastCall.delete(o);
@@ -2492,7 +2490,7 @@ begin
   for n := 0 to pred(IMEI_Hits.count) do
     IMEI_Hits[n] :=
     { } IMEI_Hits[n] + ';' +
-    { } inttostr(integer(IMEI_Hits.objects[n])) + ';' +
+    { } inttostr(integer(PtrInt(IMEI_Hits.objects[n]))) + ';' +
     { } IMEI_LastCall[n];
   IMEI_Hits.Insert(0, 'IMEI;COUNT;LASTCALL');
 

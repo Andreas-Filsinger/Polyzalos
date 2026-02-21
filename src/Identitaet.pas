@@ -34,7 +34,7 @@
 }
 unit Identitaet;
 
-{$mode delphi}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -832,28 +832,28 @@ begin
       writeln('Performance-Log aktiv: ' + LogContext);
 
     // TWebShop
-    AddMethod('ArtikelSuche', XMethods.rpc_e_r_ArtikelSuche);
-    AddMethod('ArtikelPreis', XMethods.rpc_e_r_ArtikelPreis);
-    AddMethod('KontoInfo', XMethods.rpc_e_r_KontoInfo);
-    AddMethod('BestellInfo', XMethods.rpc_e_r_BestellInfo);
-    AddMethod('Land', XMethods.rpc_e_r_Land);
-    AddMethod('Bestellen', XMethods.rpc_e_w_Bestellen);
-    AddMethod('Vormerken', XMethods.rpc_e_w_Vormerken);
-    AddMethod('Buchen', XMethods.rpc_e_w_Buchen);
-    AddMethod('ArtikelVersendetag', XMethods.rpc_e_r_ArtikelVersendetag);
-    AddMethod('Verlag', XMethods.rpc_e_r_Verlag);
-    AddMethod('Versandkosten', XMethods.rpc_e_r_Versandkosten);
-    AddMethod('ArtikelInfo', XMethods.rpc_e_r_ArtikelInfo);
-    AddMethod('BasePlug', XMethods.rpc_e_r_BasePlug);
-    AddMethod('ArtikelRabattPreis', XMethods.rpc_e_r_ArtikelRabattPreis);
-    AddMethod('PersonNeu', XMethods.rpc_e_w_PersonNeu);
-    AddMethod('Ort', XMethods.rpc_e_r_Ort);
-    AddMethod('Rabatt', XMethods.rpc_e_r_Rabatt);
-    AddMethod('Preis', XMethods.rpc_e_r_Preis);
-    AddMethod('Miniscore', XMethods.rpc_e_w_Miniscore);
-    AddMethod('LoginInfo', XMethods.rpc_e_w_LoginInfo);
-    AddMethod('NextVal', XMethods.rpc_e_w_NextVal);
-    AddMethod('Senden', XMethods.rpc_e_w_Senden);
+    AddMethod('ArtikelSuche', @XMethods.rpc_e_r_ArtikelSuche);
+    AddMethod('ArtikelPreis', @XMethods.rpc_e_r_ArtikelPreis);
+    AddMethod('KontoInfo', @XMethods.rpc_e_r_KontoInfo);
+    AddMethod('BestellInfo', @XMethods.rpc_e_r_BestellInfo);
+    AddMethod('Land', @XMethods.rpc_e_r_Land);
+    AddMethod('Bestellen', @XMethods.rpc_e_w_Bestellen);
+    AddMethod('Vormerken', @XMethods.rpc_e_w_Vormerken);
+    AddMethod('Buchen', @XMethods.rpc_e_w_Buchen);
+    AddMethod('ArtikelVersendetag', @XMethods.rpc_e_r_ArtikelVersendetag);
+    AddMethod('Verlag', @XMethods.rpc_e_r_Verlag);
+    AddMethod('Versandkosten', @XMethods.rpc_e_r_Versandkosten);
+    AddMethod('ArtikelInfo', @XMethods.rpc_e_r_ArtikelInfo);
+    AddMethod('BasePlug', @XMethods.rpc_e_r_BasePlug);
+    AddMethod('ArtikelRabattPreis', @XMethods.rpc_e_r_ArtikelRabattPreis);
+    AddMethod('PersonNeu', @XMethods.rpc_e_w_PersonNeu);
+    AddMethod('Ort', @XMethods.rpc_e_r_Ort);
+    AddMethod('Rabatt', @XMethods.rpc_e_r_Rabatt);
+    AddMethod('Preis', @XMethods.rpc_e_r_Preis);
+    AddMethod('Miniscore', @XMethods.rpc_e_w_Miniscore);
+    AddMethod('LoginInfo', @XMethods.rpc_e_w_LoginInfo);
+    AddMethod('NextVal', @XMethods.rpc_e_w_NextVal);
+    AddMethod('Senden', @XMethods.rpc_e_w_Senden);
 
     // Starten
     BasePlug := e_r_BasePlug;
@@ -965,9 +965,9 @@ begin
           writeln('TimingStatistics @' + DiagnosePath);
 
         // Methoden registrieren
-        AddMethod('BasePlug', JonDa.info);
-        AddMethod('StartTAN', JonDa.start);
-        AddMethod('ProceedTAN', JonDa.proceed);
+        AddMethod('BasePlug', @JonDa.info);
+        AddMethod('StartTAN', @JonDa.start);
+        AddMethod('ProceedTAN', @JonDa.proceed);
 
         // Starten
         write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');
@@ -1215,7 +1215,7 @@ begin
       writeln('TimingStatistics @' + DiagnosePath);
 
     // Methoden registrieren
-    AddMethod('Open', Magneto.rpc_e_w_Magneto);
+    AddMethod('Open', @Magneto.rpc_e_w_Magneto);
 
     // Starten
     write('Aktiviere ' + ComputerName + ':' + inttostr(DefaultPort) + '  ... ');

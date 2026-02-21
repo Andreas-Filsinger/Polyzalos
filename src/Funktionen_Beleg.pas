@@ -34,9 +34,7 @@
 }
 unit Funktionen_Beleg;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 //
 // e
@@ -3831,7 +3829,7 @@ begin
       ApiFirst;
       while not(eof) do
       begin
-        lPOSTEN.add(TObject(FieldByName('RID').AsInteger));
+        lPOSTEN.add(TObject(PtrInt(FieldByName('RID').AsInteger)));
         ApiNext;
       end;
     end;
@@ -7992,7 +7990,7 @@ begin
         end;
         //
         ClientSorter.AddObject(PostenzeileSortStr + '.' + inttostrN(FieldByName('POSNO').AsInteger, 8) + '.' +
-          inttostrN(FieldByName('RID').AsInteger, 8), Pointer(FieldByName('RID').AsInteger));
+          inttostrN(FieldByName('RID').AsInteger, 8), TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         ApiNext;
       end;
@@ -8017,7 +8015,7 @@ begin
       if iBelegMengenSortierung then
         ClientSorter.sort;
       for n := 0 to pred(ClientSorter.count) do
-        PostenRIDs.add(integer(ClientSorter.Objects[n]));
+        PostenRIDs.add(integer(PtrInt(ClientSorter.Objects[n])));
 
       // jetzt ausgeben!
       _Summe := 0.0;

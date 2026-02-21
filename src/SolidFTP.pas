@@ -34,7 +34,7 @@
 }
 unit SolidFTP;
 
-{$mode delphi}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -1259,9 +1259,9 @@ begin
         sFTP.Port := 22;
         with sFTP do
         begin
-         OnMessage := putty_cb_Message;
-         OnListing := putty_cb_lsOne;
-         OnVerifyHostKey := putty_cb_verifyHostKey;
+         OnMessage := @putty_cb_Message;
+         OnListing := @putty_cb_lsOne;
+         OnVerifyHostKey := @putty_cb_verifyHostKey;
          ls := TStringList.Create;
           // more init
         end;

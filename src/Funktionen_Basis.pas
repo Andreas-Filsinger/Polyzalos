@@ -34,9 +34,7 @@
 }
 unit Funktionen_Basis;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -214,7 +212,7 @@ begin
   if (MUSIKER_R > 0) then
   begin
     EnsureCache_Musiker;
-    k := CacheMusikerName.indexofobject(TObject(MUSIKER_R));
+    k := CacheMusikerName.indexofobject(TObject(Pointer(MUSIKER_R)));
     if (k <> -1) then
       Result := CacheMusikerName[k]
     else
@@ -233,7 +231,7 @@ begin
   if (MUSIKER_R > 0) then
   begin
     EnsureCache_Musiker;
-    k := CacheMusikerNachnameKommaVorname.indexofobject(TObject(MUSIKER_R));
+    k := CacheMusikerNachnameKommaVorname.indexofobject(TObject(Pointer(MUSIKER_R)));
     if (k <> -1) then
       Result := CacheMusikerNachnameKommaVorname[k]
     else
@@ -252,7 +250,7 @@ begin
   if (MUSIKER_R > 0) then
   begin
     EnsureCache_Musiker;
-    k := CacheMusikerNachname.indexofobject(TObject(MUSIKER_R));
+    k := CacheMusikerNachname.indexofobject(TObject(Pointer(MUSIKER_R)));
     if (k <> -1) then
       Result := CacheMusikerNachname[k]
     else
@@ -322,17 +320,17 @@ begin
          {} strValidate(
          {}  FieldByName('VORNAME').AsString + ' ' +
          {}  FieldByName('NACHNAME').AsString),
-         {} TObject(FieldByName('RID').AsInteger));
+         {} TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         CacheMusikerNachnameKommaVorname.AddObject(
          {} strValidate(
          {}  FieldByName('NACHNAME').AsString + ', ' +
          {}  FieldByName('VORNAME').AsString),
-         {} TObject(FieldByName('RID').AsInteger));
+         {} TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         CacheMusikerNachname.AddObject(
          {} strValidate(FieldByName('NACHNAME').AsString),
-         {} TObject(FieldByName('RID').AsInteger));
+         {} TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         ApiNext;
       end;
@@ -373,9 +371,9 @@ begin
           else
             RID := FieldByName('EVL_R').AsInteger;
         until eternity;
-        CacheMusikerName.AddObject(Kette, pointer(KettenStartL[n]));
-        CacheMusikerNachnameKommaVorname.AddObject(KetteNachname, pointer(KettenStartL[n]));
-        CacheMusikerNachname.AddObject(KetteNurNachname, pointer(KettenStartL[n]));
+        CacheMusikerName.AddObject(Kette, TObject(Pointer(KettenStartL[n])));
+        CacheMusikerNachnameKommaVorname.AddObject(KetteNachname, TObject(Pointer(KettenStartL[n])));
+        CacheMusikerNachname.AddObject(KetteNurNachname, TObject(pointer(KettenStartL[n])));
       end;
     end;
 
@@ -503,9 +501,9 @@ begin
       sql.add('select MUSIKER_R,EVL_R from MUSIKER where RID=' + IntToStr(MUSIKER_R));
       ApiFirst;
       if FieldByName('MUSIKER_R').IsNull then
-        Result.add(TObject(MUSIKER_R))
+        Result.add(TObject(Pointer(MUSIKER_R)))
       else
-        Result.add(TObject(FieldByName('MUSIKER_R').AsInteger));
+        Result.add(TObject(Pointer(FieldByName('MUSIKER_R').AsInteger)));
       MUSIKER_R := FieldByName('EVL_R').AsInteger;
       if (MUSIKER_R < 1) then
         break;
@@ -549,7 +547,7 @@ begin
     ApiFirst;
     while not (EOF) do
     begin
-      Result.add(TObject(FieldByName('RID').AsInteger));
+      Result.add(TObject(Pointer(FieldByName('RID').AsInteger)));
       ApiNext;
     end;
   end;
@@ -597,7 +595,7 @@ begin
    k := CacheMusikerName.indexof(MusikerListe);
    if (k<>-1) then
    begin
-    Result := integer(CacheMusikerName.objects[k]);
+    Result := Integer(Pointer(CacheMusikerName.objects[k]));
     break;
    end;
 
@@ -605,7 +603,7 @@ begin
    k := CacheMusikerNachnameKommaVorname.indexof(MusikerListe);
    if (k<>-1) then
    begin
-    Result := integer(CacheMusikerNachnameKommaVorname.objects[k]);
+    Result := Integer(Pointer(CacheMusikerNachnameKommaVorname.objects[k]));
     break;
    end;
 

@@ -1,4 +1,7 @@
-(* anfix - low level Tools
+(*
+
+  anfix - low level Tools
+  SPDX-License-Identifier: MIT
 
   Copyright (C) 2000 - 2026  Andreas Filsinger
 

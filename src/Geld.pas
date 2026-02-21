@@ -26,9 +26,7 @@
 }
 unit Geld;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 //
 // SS = SteuerSatz [in Prozent]
@@ -914,12 +912,12 @@ end;
 
 function MoneyAsObject(Wert: double): TObject;
 begin
-  result := TObject(integer(round(Wert * 100.0)));
+  result := TObject(Pointer(integer(round(Wert * 100.0))));
 end;
 
 function ObjectAsMoney(Wert: TObject): double;
 begin
-  result := integer(Wert);
+  result := integer(pointer(Wert));
   result := result / 100.0;
 end;
 

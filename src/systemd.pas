@@ -20,12 +20,8 @@ unit systemd;
 
 {$mode objfpc}{$H+}
 
-// #
-// # OS - Wrapper
-// #
-// # win32: Aufruf externer Anwendungen
 // # linux: rudimentäres libsystemd API um "ordentliche" Services schreiben zu können
-// #
+// #        Aufruf externer Anwendungen
 
 interface
 

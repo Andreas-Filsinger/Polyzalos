@@ -34,7 +34,7 @@
 }
 unit Funktionen_Artikel;
 
-{$mode delphi}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -1327,7 +1327,7 @@ var
           // Der NAME sollte von links nach rechts verlaufen
           DecideStr := DecideStr + '+' + FieldByName('NAME').AsString;
 
-          DecideStrL.AddObject(DecideStr, TObject(FieldByName('RID').AsInteger));
+          DecideStrL.AddObject(DecideStr, TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         end;
         ApiNext;
@@ -1390,7 +1390,7 @@ var
            else
             DecideStr := DecideStr + IntToStrN(LAGER[Lager_iFill(PLATZIERUNG)],5);
 
-           DecideStrL.AddObject(DecideStr, TObject(FieldByName('RID').AsInteger));
+           DecideStrL.AddObject(DecideStr, TObject(PtrInt(FieldByName('RID').AsInteger)));
          end;
         end else
         begin
@@ -1510,7 +1510,7 @@ begin
           DecideStrL.sort;
           if DebugMode then
            AppendIntegerStringsToFile(DecideStrL, ErrorFName('LAGER'), Uhr8);
-          result := integer(DecideStrL.Objects[0]);
+          result := Integer(PtrInt(DecideStrL.Objects[0]));
           break;
         end;
         if (VERLAG_R = e_r_FreiesLager_VERLAG_R) then
@@ -4214,7 +4214,7 @@ begin
         s := a + s;
       end;
 
-      ClientSorter.AddObject(s, Pointer(RIDS[n]));
+      ClientSorter.AddObject(s, TObject(PtrInt(RIDS[n])));
     end;
 
     // Sortieren und ausgeben

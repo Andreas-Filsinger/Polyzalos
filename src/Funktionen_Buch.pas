@@ -34,9 +34,7 @@
 }
 unit Funktionen_Buch;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 //
 // b_r_* lesende Buchungsfunktionen
@@ -2298,14 +2296,14 @@ begin
     begin
       AddObject(
         { } KONTO,
-        { } TObject(
+        { } TObject(PtrInt(
         { } e_r_sql('select count(RID) from BUCH where (BETRAG is null) and NAME=' +
-        { } SQLString(KONTO))));
+        { } SQLString(KONTO)))));
       isKonto_Cache.Sort;
       i := indexof(KONTO);
     end;
 
-    result := (integer(Objects[i]) > 0);
+    result := (Integer(PtrInt(Objects[i])) > 0);
   end;
 end;
 
@@ -3847,7 +3845,7 @@ begin
         { } 'A' + FieldByName('BAUSTELLE_R').AsString + ' ' +
         { } 'U' + FieldByName('BUGET_R').AsString + ' ' +
         { } b_r_Stempel(FieldbyName('STEMPEL_R').AsInteger)+FieldByName('STEMPEL_DOKUMENT').AsString,
-        { } pointer(FieldByName('RID').AsInteger));
+        { } TObject(pointer(FieldByName('RID').AsInteger)));
       ApiNext;
     end;
   end;

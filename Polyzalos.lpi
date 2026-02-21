@@ -178,6 +178,11 @@
         <Filename Value="src/Mapping.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src/gplists.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GpLists"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,4 +1,5 @@
 ﻿(*
+  |  SPDX-License-Identifier: MIT
 
   TSearchStringList - binary search & incrementelle & "Pos=1" search
   TExtendedList - "AND" "OR" -able persistent List
@@ -7,27 +8,30 @@
 
   Copyright (C) 2007 - 2024  Andreas Filsinger
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  |  Permission is hereby granted, free of charge, to any person obtaining a copy
+  |  of this software and associated documentation files (the "Software"), to deal
+  |  in the Software without restriction, including without limitation the rights
+  |  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  |  copies of the Software, and to permit persons to whom the Software is
+  |  furnished to do so, subject to the following conditions:
+  |
+  |  The above copyright notice and this permission notice shall be included in all
+  |  copies or substantial portions of the Software.
+  |
+  |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  |  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  |  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  |  SOFTWARE.
 
   https://wiki.orgamon.org/
 
 *)
 unit WordIndex;
 
-{$ifdef fpc}
 {$mode objfpc}{$H+}
-{$endif}
 
 interface
 
@@ -86,9 +90,7 @@ type
     //    zu allen Suchworten sind (UND - Logik)
     //
   protected
-     {$ifdef FPC}
      Function DoCompareText(const s1,s2 : string) : PtrInt; override;
-     {$endif}
 
 
   private
@@ -305,7 +307,6 @@ const
 type
   TBinaereSucheResult = (BS_Found, BS_NotFound, BS_SimilarFound);
 
-{$ifdef FPC}
 //
 // result := s1 - s2  (String Distance)
 //
@@ -339,7 +340,6 @@ begin
   // if both are equal, we get "0" wich is good
   result := l1 - l2;
 end;
-{$endif}
 
 class function TWordIndex.AsTranslate(s: string): string;
 var
@@ -512,7 +512,7 @@ begin
       // neues Wort anfangen, auf alle Fälle dieses mit
       // aktuellen RID anfügen!
       ReferenceList := TExtendedList.Create;
-      ReferenceList.add(pointer(Objects[AddIndex]));
+      ReferenceList.add(Pointer(Objects[AddIndex]));
       Objects[AddIndex] := ReferenceList;
 
       ChkIndex := pred(AddIndex);
@@ -731,40 +731,36 @@ begin
 
     // Evaluate Version
     _ListCount := PInteger(ReadP)^;
-    {$ifdef FPC}
     inc(ReadP, 4);
-    {$else}
-    inc(integer(ReadP), 4);
-    {$endif}
     if (_ListCount = cTWordIndex_File_Tag) then
     begin
       Version := PInteger(ReadP)^;
-      inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+      inc(ReadP, 4);
       pMinWordLenght := PInteger(ReadP)^;
-      inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+      inc(ReadP, 4);
       _ListCount := PInteger(ReadP)^;
-      inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+      inc(ReadP, 4);
     end;
 
     capacity := _ListCount;
     for n := 0 to pred(_ListCount) do
     begin
       _SubCount := PInteger(ReadP)^;
-      inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+      inc(ReadP, 4);
       SubItems := TExtendedList.Create;
       SubItems.capacity := _SubCount;
       for m := 0 to pred(_SubCount) do
       begin
         _refNo := PInteger(ReadP)^;
-        inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+        inc(ReadP, 4);
         SubItems.add(Pointer(_refNo));
       end;
       _StrLen := PInteger(ReadP)^;
-      inc({$ifndef FPC}integer{$endif}(ReadP), 4);
+      inc(ReadP, 4);
       SetLength(InpStr, _StrLen);
       if (_StrLen > 0) then
         system.move(ReadP^, InpStr[1], _StrLen);
-      inc({$ifndef FPC}integer{$endif}(ReadP), _StrLen);
+      inc(ReadP, _StrLen);
       AddObject(InpStr, SubItems);
     end;
     FreeMem(_ReadP, _FSize);
@@ -883,11 +879,7 @@ var
       m := (s + e) shr 1;
 
       // vergleiche mit diesem Element
-      {$ifdef FPC}
       CompareResult := DoCompareText(strings[m], SearchStr);
-      {$else}
-      CompareResult := AnsiCompareText(strings[m], SearchStr);
-      {$endif}
 
       //
       if (CompareResult < 0) then
@@ -1045,9 +1037,7 @@ begin
  begin
    AssignFile(AllF,FileName);
    rewrite(AllF);
-   {$ifdef FPC}
    SetTextLineEnding(AllF,#$0A);
-   {$endif}
    DumpMode := true;
  end;
 end;
@@ -1499,15 +1489,11 @@ end;
 
 function TsTable.Col(c: integer): TStringList;
 var
-  r: integer;
+  r: Integer;
 begin
   result := TStringList.Create;
   for r := 1 to pred(Count) do
-  {$ifdef FPC}
-    result.AddObject(TStringList(Items[r])[c], TObject(PtrUInt (r))); //64-Bit
-  {$ELSE}
-    result.AddObject(TStringList(Items[r])[c], TObject(UInt64 (r))); //32 Bit
-  {$ENDIF}
+    result.AddObject(TStringList(Items[r])[c], TObject(PtrInt(r))); // 64-Bit!
 end;
 
 function TsTable.Col(HeaderName: String): TStringList;

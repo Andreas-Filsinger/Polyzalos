@@ -34,8 +34,7 @@
 }
 unit Funktionen_App;
 
-{$mode delphi}
-
+{$mode objfpc}{$H+}
 
 interface
 
@@ -186,7 +185,7 @@ const
   cWeb_Neu = '-neu.html';
 
 type
-  TOrgaMonApp_TMoreInfo = function(RID: integer; FotoGeraeteNo: string): string of object;
+  TOrgaMonApp_TMoreInfo = function(pAUFTRAG_R: Integer; GeraeteNo: AnsiString): AnsiString of object;
 
   TOrgaMonApp = class(TObject)
 
@@ -470,11 +469,11 @@ type
 
     // Eingabe.GGG.txt Suchfunktionen
     procedure invalidate_NummerNeuCache;
-    function EingabeLocate(AUFTRAG_R: integer; GeraeteNo: string; Spalte: string): string;
+    function EingabeLocate(pAUFTRAG_R: integer; GeraeteNo: string; Spalte: string): string;
 
     // Implementierungen von Prototypen
-    function ZaehlerNummerNeu(AUFTRAG_R: integer; GeraeteNo: string): string;
-    function ReglerNummerNeu(AUFTRAG_R: integer; GeraeteNo: string): string;
+    function ZaehlerNummerNeu(pAUFTRAG_R: integer; GeraeteNo: AnsiString): AnsiString;
+    function ReglerNummerNeu(pAUFTRAG_R: integer; GeraeteNo: AnsiString): AnsiString;
 
   end;
 
@@ -758,7 +757,7 @@ begin
   inc(TabCounter);
 end;
 
-procedure TOrgaMonApp.EndAction;
+procedure TOrgaMonApp.EndAction(ActionText: string = '');
 begin
   // pragma
   dec(TabCounter);
@@ -1210,7 +1209,7 @@ var
          (mderec.ausfuehren_ist_datum = cMonDa_Status_Vorgezogen) then
       begin
         write(MonDaA_StayF, mderec);
-        MondaStay.addobject(inttostr(mderec.RID), TObject(Stat_MondaStay));
+        MondaStay.addobject(inttostr(mderec.RID), TObject(PtrInt(Stat_MondaStay)));
         inc(Stat_MondaStay);
       end;
 
@@ -1866,13 +1865,13 @@ var
         // Uhrzeit (ist schon sortierfähig!)
         nextp(EingabeL[n], ';', 1) + '-' +
         // RID im 3. Rang
-        nextp(EingabeL[n], ';', 2), Pointer(n));
+        nextp(EingabeL[n], ';', 2), TObject(Pointer(n)));
     ClientSorter.sort;
 
     AutomataState := 0;
     for n := 0 to pred(ClientSorter.count) do
     begin
-      m := integer(ClientSorter.objects[n]);
+      m := integer(Pointer(ClientSorter.objects[n]));
       case AutomataState of
         0:
           begin
@@ -2633,7 +2632,7 @@ begin
             // Es gibt den Datensatz in der Stay-Liste sowie
             // in den Neuerungen von OrgaMon
             // aus der Stay-Datei den Datensatz holen
-            seek(MonDaA_StayF, integer(MondaStay.objects[k]));
+            seek(MonDaA_StayF, Integer(Pointer(MondaStay.objects[k])));
             read(MonDaA_StayF, mderec2);
 
             // Aus den Stay-Daten alle wichtigen MonDa-Anteile
@@ -3447,7 +3446,7 @@ var
   FotoDateiNameBisher: string;
   FotoDateiNameCheck: string;
   SchlangenPos: Integer;
-  AUFTRAG_R: integer;
+  //AUFTRAG_R: integer;
   Path: string;
   tNAMES: TsTable;
   FotoParameter_INI: TStringList;
@@ -5560,11 +5559,11 @@ var
   JProtokoll: string;
   OrgaMonErgebnis: file of TMdeRec;
   // Das sind Ergebnisse von MonDa
-  pAppServicePath: string;
+//  pAppServicePath: string;
   sOrgaMonFName: string;
   dTimeOut: TANFiXDate;
   dMeldung: TANFiXDate;
-  Stat_Meldungen: integer;
+//  Stat_Meldungen: integer;
   GeraeteNo: string;
   MeldungsMoment: string;
 begin
@@ -6205,7 +6204,7 @@ begin
   _GeraeteNo := '';
 end;
 
-function TOrgaMonApp.EingabeLocate(AUFTRAG_R: integer; GeraeteNo: string; Spalte: string): string;
+function TOrgaMonApp.EingabeLocate(pAUFTRAG_R: integer; GeraeteNo: string; Spalte: string): string;
 var
   FName: string;
   r: integer;
@@ -6224,21 +6223,21 @@ begin
   end;
 
   // RID suchen
-  r := EINGABE.locate('RID', InttoStr(AUFTRAG_R));
+  r := EINGABE.locate('RID', InttoStr(pAUFTRAG_R));
   if (r <> -1) then
     result := EINGABE.readCell(r, Spalte)
   else
     result := '';
 end;
 
-function TOrgaMonApp.ZaehlerNummerNeu(AUFTRAG_R: integer; GeraeteNo: string): string;
+function TOrgaMonApp.ZaehlerNummerNeu(pAUFTRAG_R: integer; GeraeteNo: string): string;
 begin
-  result := EingabeLocate(AUFTRAG_R, GeraeteNo, 'ZAEHLER_NUMMER_NEU');
+  result := EingabeLocate(pAUFTRAG_R, GeraeteNo, 'ZAEHLER_NUMMER_NEU');
 end;
 
-function TOrgaMonApp.ReglerNummerNeu(AUFTRAG_R: integer; GeraeteNo: string): string;
+function TOrgaMonApp.ReglerNummerNeu(pAUFTRAG_R: integer; GeraeteNo: string): string;
 begin
-  result := EingabeLocate(AUFTRAG_R, GeraeteNo, 'REGLER_NUMMER_NEU');
+  result := EingabeLocate(pAUFTRAG_R, GeraeteNo, 'REGLER_NUMMER_NEU');
 end;
 
 procedure TOrgaMonApp.Dump(s: string; sl: TStringList);
@@ -6270,8 +6269,8 @@ begin
     tABLAGE := tsTable.Create;
 
     // Initialer Lauf
-    callback_ZaehlerNummerNeu := ZaehlerNummerNeu;
-    callback_ReglerNummerNeu := ReglerNummerNeu;
+    callback_ZaehlerNummerNeu := @ZaehlerNummerNeu;
+    callback_ReglerNummerNeu := @ReglerNummerNeu;
 
     // die aktuellen Daten aus dem FTP-Bereich jetzt abholen
     workSync;
@@ -6546,7 +6545,7 @@ begin
       sFilesClientSorter.AddObject(
         { } long2dateLog(File_Date) + '|' +
         { } secondstostr(File_Seconds) + '|' +
-        { } sFiles[n], TObject(n));
+        { } sFiles[n], TObject(Pointer(n)));
 
   end;
 
@@ -6554,7 +6553,7 @@ begin
   sFilesClientSorter.sort;
   sTemp := TStringList.Create;
   for n := 0 to pred(sFilesClientSorter.Count) do
-    sTemp.add(sFiles[integer(sFilesClientSorter.Objects[n])]);
+    sTemp.add(sFiles[Integer(PtrInt(sFilesClientSorter.Objects[n]))]);
   sFiles.Assign(sTemp);
   sTemp.Free;
 

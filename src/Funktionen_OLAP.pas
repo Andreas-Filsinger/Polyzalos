@@ -34,9 +34,7 @@
 }
 unit Funktionen_OLAP;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -1858,7 +1856,7 @@ begin
 
               // Antwort Index aufbauen
               for m := 1 to pred(JoinL.count) do
-                sl_ConsultIndex.addobject(nextp(JoinL[m], cOLAPcsvSeparator, col_ConsultIndex), pointer(m));
+                sl_ConsultIndex.addobject(nextp(JoinL[m], cOLAPcsvSeparator, col_ConsultIndex), TObject(PtrInt(m)));
               sl_ConsultIndex.sort;
               sl_ConsultIndex.sorted := true;
 
@@ -1875,7 +1873,7 @@ begin
                 if (k = -1) then
                   AllHeader.add(cOLAPNull)
                 else
-                  AllHeader.add(nextp(JoinL[integer(sl_ConsultIndex.objects[k])], cOLAPcsvSeparator,
+                  AllHeader.add(nextp(JoinL[integer(PtrInt(sl_ConsultIndex.objects[k]))], cOLAPcsvSeparator,
                     col_ConsultAnswer));
               end;
 
@@ -3281,7 +3279,7 @@ begin
               while (ThisHeader <> '') do
                 AllHeader.add(nextp(ThisHeader, cOLAPcsvSeparator));
               for m := 1 to pred(sl.count) do
-                ClientSorter.addobject('', TObject(m));
+                ClientSorter.addobject('', TObject(PtrInt(m)));
               while (Line <> '') do
               begin
                 SortRow := nextp(Line, cOLAPcsvSeparator);
@@ -3311,7 +3309,7 @@ begin
               ClientSorter.sort;
               SortResult.add(sl[0]);
               for m := 0 to pred(ClientSorter.count) do
-                SortResult.add(sl[integer(ClientSorter.objects[m])]);
+                SortResult.add(sl[integer(PtrInt(ClientSorter.objects[m]))]);
               SortResult.savetofile(RohdatenFName(RohdatenCount));
               SaveCopy(RohdatenFName(RohdatenCount));
               OLAP_Ergebnis_Count := RohdatenCount;

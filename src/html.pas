@@ -34,13 +34,7 @@
 }
 unit html;
 
-{$ifndef FPC}
-{$I jcl.inc}
-{$endif}
-
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -201,7 +195,7 @@ type
     procedure LoadBlock(FromBlock, AsBlock: string; NewStrings: TStrings; KillInsertMark: boolean = false); overload;
     procedure LoadBlock(Block: string; NewStrings: TStrings; KillInsertMark: boolean = false); overload;
     procedure LoadBlockFromFile(Block, FName: string);
-    procedure LoadFromFile(const FileName: string); override;
+    procedure LoadFromFile(const pFileName: string); override;
 
     procedure SaveToFileCompressed(FName: string);
     procedure InsertDocument(FName: string);
@@ -211,7 +205,7 @@ type
     procedure SortBlocks(Block: string);
 
     // Dereference by static xml DB
-    procedure Dereference(Options: string);
+    procedure Dereference(pOptions: string);
 
     // set Dates
     procedure setDatesFromFile(FName: string);
@@ -236,7 +230,7 @@ type
   THTMLAusgabe = class(TStringList)
     constructor create; virtual;
     destructor Destroy; override;
-    function AsIntegerList(Values: string): TgpIntegerList;
+    function AsIntegerList(pValues: string): TgpIntegerList;
   end;
 
 function TColor2HTMLColor(Value: TColor): string;
@@ -2088,7 +2082,7 @@ begin
       delete(n);
 end;
 
-procedure THTMLTemplate.Dereference(Options: string);
+procedure THTMLTemplate.Dereference(pOptions: string);
 {$IFNDEF fpc}
 var
   iStart, iEnd: integer;
@@ -2375,7 +2369,7 @@ begin
     for n := 0 to pred(cHTMLAnsiTab.count) do
       while pos(cHTMLAnsiTab[n], result) > 0 do
       begin
-        c := AnsiChar(cHTMLAnsiTab.Objects[n]);
+        c := AnsiChar(Integer(Pointer(cHTMLAnsiTab.Objects[n])));
         ersetze(cHTMLAnsiTab[n], c, result);
         if pos('&', result) = 0 then
           break;
@@ -2393,7 +2387,7 @@ begin
   until eternity;
 end;
 
-procedure THTMLTemplate.LoadFromFile(const FileName: string);
+procedure THTMLTemplate.LoadFromFile(const pFileName: string);
 var
   n, m, k: integer;
   IncludeS: TStringList;
@@ -2402,10 +2396,10 @@ var
   IncludeFName: string;
 begin
   AnsiAusgabe := false;
-  self.FileName := FileName;
-  inherited LoadFromFile(FileName);
+  self.FileName := pFileName;
+  inherited LoadFromFile(pFileName);
   IncludeList.clear;
-  IncludeList.add(FileName);
+  IncludeList.add(pFileName);
   // blow up with "INCLUDEs", may be nested!
   IncludeS := nil;
   n := 0;
@@ -3271,7 +3265,7 @@ end;
 
 { THTMLAusgabe }
 
-function THTMLAusgabe.AsIntegerList(Values: string): TgpIntegerList;
+function THTMLAusgabe.AsIntegerList(pValues: string): TgpIntegerList;
 var
   s1: integer;
   NumericValue: string;
@@ -3280,7 +3274,7 @@ begin
   result := TgpIntegerList.create;
   s1 := indexof(cHTML_RohdatenStart);
   for n := succ(s1) to pred(count) do
-    if (pos(Values + '=', strings[n]) = 1) then
+    if (pos(pValues + '=', strings[n]) = 1) then
     begin
       NumericValue := nextp(strings[n], '=', 1);
       if (NumericValue <> '') then
@@ -3400,7 +3394,7 @@ StartDebug('html');
 cHTMLAnsiTab := TStringList.create;
 for n := low(cHTMLCodes) to high(cHTMLCodes) do
   if (length(cHTMLCodes[n]) > 1) then
-    cHTMLAnsiTab.AddObject(cHTMLCodes[n], TObject(n));
+    cHTMLAnsiTab.AddObject(cHTMLCodes[n], TObject(PtrInt(n)));
 
 finalization
 

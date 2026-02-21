@@ -34,9 +34,7 @@
 }
 unit Funktionen_LokaleDaten;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
@@ -161,7 +159,7 @@ begin
       for n := 0 to pred(cache.count) do
       begin
         AusgabeItems.add(cache[n]);
-        AusgabeValues.add(inttostr(integer(cache.objects[n])));
+        AusgabeValues.add(inttostr(integer(PtrInt(cache.objects[n]))));
       end;
       AusgabeItems.SaveToFile(SearchDir + cKreativeCacheFName + cItemsCacheFExtension);
       AusgabeValues.SaveToFile(SearchDir + cKreativeCacheFName + cValueCacheFExtension);
@@ -283,7 +281,7 @@ begin
             { } FieldByName('ORTSTEIL').AsString + ' ' +
             { } FieldByName('STATE').AsString,
 
-            TObject(cPERSON.FieldByName('RID').AsInteger)
+            TObject(PtrInt(cPERSON.FieldByName('RID').AsInteger))
 
             );
         end;
@@ -1050,7 +1048,7 @@ begin
         S + ' ' +
         FieldByName('LAUFNUMMER').AsString;
 
-      SearchIndex.AddWords(ArtikelContext1, TObject(ARTIKEL_R));
+      SearchIndex.AddWords(ArtikelContext1, TObject(PtrInt(ARTIKEL_R)));
 
       // ist die Aufnahme des Artikels in den WebShop OK?
       if (WebShopRedList.indexof(ARTIKEL_R)=-1) then
@@ -1061,9 +1059,9 @@ begin
           if (TgpIntegerList(RIDs[n]).IndexOf(ARTIKEL_R)<>-1) then
           begin
             if (pos('2',OLAPs[n])>0) then
-              TWordIndex(SearchIndexs[n]).AddWords(ArtikelContext2, TObject(ARTIKEL_R))
+              TWordIndex(SearchIndexs[n]).AddWords(ArtikelContext2, TObject(PtrInt(ARTIKEL_R)))
             else
-              TWordIndex(SearchIndexs[n]).AddWords(ArtikelContext1, TObject(ARTIKEL_R));
+              TWordIndex(SearchIndexs[n]).AddWords(ArtikelContext1, TObject(PtrInt(ARTIKEL_R)));
           end;
 
       end;
@@ -1187,7 +1185,7 @@ begin
 
       MusikerSearchWI.AddWords(
         {} TheWordStr,
-        {} TObject(FieldByName('RID').AsInteger));
+        {} TObject(PtrInt(FieldByName('RID').AsInteger)));
       ApiNext;
     end;
   end;
@@ -1234,7 +1232,7 @@ begin
         {} FieldByName('CHIPNUMMER').AsString + ' ' +
         {} HugeSingleLine(IMPFUNGsl, ' ') + ' ' +
         {} HugeSingleLine(KRANKHEITsl, ' '),
-        {} TObject(FieldByName('RID').AsInteger));
+        {} TObject(PtrInt(FieldByName('RID').AsInteger)));
       ApiNext;
       inc(RecN);
     end;

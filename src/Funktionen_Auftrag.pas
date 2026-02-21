@@ -34,7 +34,7 @@
 }
 unit Funktionen_Auftrag;
 
-{$mode delphi}
+{$mode objfpc}{$H+}
 
 {
   Basis-Routinen rund um "Monteur", "Baustelle" und "Auftrag"
@@ -270,7 +270,7 @@ function Feiertage: TSperreOfficalHolidays;
 function LieferzeitToStr(i: TAnfixTime): string;
 function LieferzeitInTagen(i: Integer): Integer;
 function VersendetagToStr(i: Integer): string;
-function Liefertag(Liefertag: TAnfixTime): TAnfixTime;
+function Liefertag(pLiefertag: TAnfixTime): TAnfixTime;
 
 function VormittagsToChar(vormittags: boolean): char;
 function VormittagsToTime(s: string): TDateTime;
@@ -309,9 +309,6 @@ uses
   SolidFTP,
 
   // OrgaMon
-{$IFNDEF CONSOLE}
-  Datenbank,
-{$ENDIF}
   Funktionen_App,
   Funktionen_Beleg,
   Funktionen_Basis,
@@ -506,7 +503,7 @@ begin
       First;
       while not(eof) do
       begin
-        RIDs.Add(TObject(FieldByName('RID').AsInteger));
+        RIDs.Add(TObject(PtrInt(FieldByName('RID').AsInteger)));
         next;
       end;
     end;
@@ -530,7 +527,7 @@ var
   DeleteCount: Integer;
 begin
   RIDs := TList.create;
-  RIDs.Add(TObject(Master_R));
+  RIDs.Add(TObject(PtrInt(Master_R)));
   DeleteCount := 0;
   RecourseDeleteAUFTRAG(RIDs, DeleteCount);
   RIDs.free;
@@ -737,11 +734,11 @@ begin
   result := inttostr(Days) + 'd' + secondstostr5(Hours) + 'h';
 end;
 
-function Liefertag(Liefertag: TAnfixTime): TAnfixTime;
+function Liefertag(pLiefertag: TAnfixTime): TAnfixTime;
 begin
-  while WeekDay(Liefertag) in [6, 7] do
-    Liefertag := DatePlus(Liefertag, 1);
-  result := Liefertag;
+  while WeekDay(pLiefertag) in [6, 7] do
+    pLiefertag := DatePlus(pLiefertag, 1);
+  result := pLiefertag;
 end;
 
 function VersendetagToStr(i: Integer): string;
@@ -1985,8 +1982,8 @@ begin
     if (iAppServerId<>'') and (iAppServerPfad<>'') then
       FotoName_JonDaX.readIni(iAppServerId, iAppServerPfad + 'dat\');
     FotoName_CallBacks := TFotoCallBacks.create;
-    FotoName_JonDaX.callback_ZaehlerNummerNeu := FotoName_CallBacks.ResultEmpty;
-    FotoName_JonDaX.callback_ReglerNummerNeu := FotoName_CallBacks.ResultEmpty;
+    FotoName_JonDaX.callback_ZaehlerNummerNeu := @FotoName_CallBacks.ResultEmpty;
+    FotoName_JonDaX.callback_ReglerNummerNeu := @FotoName_CallBacks.ResultEmpty;
   end;
 end;
 
@@ -2238,8 +2235,11 @@ begin
             VerfallGruppe_R := MEILENSTEIN.FieldByName('GRUPPE_R').AsInteger;
           end;
 
-          Verfall.addobject(inttostr(_StartDatum) + ';' + POSTEN.FieldByName('RID').AsString + ';' +
-            MEILENSTEIN.FieldByName('RID').AsString, TObject(MEILENSTEIN.FieldByName('GRUPPE_R').AsInteger));
+          Verfall.addobject(
+           {} inttostr(_StartDatum) + ';' +
+           {} POSTEN.FieldByName('RID').AsString + ';' +
+           {} MEILENSTEIN.FieldByName('RID').AsString,
+           {} TObject(PtrInt(MEILENSTEIN.FieldByName('GRUPPE_R').AsInteger)));
           ErsterVerfall := false;
         end
         else
@@ -2328,7 +2328,7 @@ begin
       HANDLUNGSBEDARF_POSTEN_RID := strtoint(nextp(OneLine, ';'));
       HANDLUNGSBEDARF_MEILENSTEIN_RID := strtoint(nextp(OneLine, ';'));
 
-      _GRUPPE := Integer(Verfall.Objects[0]);
+      _GRUPPE := Integer(PtrInt(Verfall.Objects[0]));
       if (_GRUPPE <> 0) then
         FieldByName('GRUPPE_R').AsInteger := _GRUPPE
       else
@@ -2394,11 +2394,11 @@ begin
       ApiFirst;
       while not(eof) do
       begin
-        CacheMonteur.addobject(FieldByName('NAME1').AsString, TObject(FieldByName('RID').AsInteger));
-        MonteurKuerzel.addobject(FieldByName('KUERZEL').AsString, TObject(FieldByName('RID').AsInteger));
+        CacheMonteur.addobject(FieldByName('NAME1').AsString, TObject(PtrInt(FieldByName('RID').AsInteger)));
+        MonteurKuerzel.addobject(FieldByName('KUERZEL').AsString, TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         if (FieldByName('MONDA').AsString <> '') then
-          MonteurKuerzelGeraeteID.addobject(FieldByName('KUERZEL').AsString, TObject(FieldByName('RID').AsInteger));
+          MonteurKuerzelGeraeteID.addobject(FieldByName('KUERZEL').AsString, TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         //
         SubItem := TStringList.create;
@@ -2449,7 +2449,7 @@ begin
   EnsureCache_Monteur;
   result := MonteurKuerzel.indexof(cutblank(str));
   if (result <> -1) then
-    result := Integer(MonteurKuerzel.Objects[result]);
+    result := Integer(PtrInt(MonteurKuerzel.Objects[result]));
 end;
 
 function e_r_MonteurKuerzel(PERSON_R: Integer): string;
@@ -2745,25 +2745,25 @@ begin
         { CacheBaustelle_EINZEL_AUFWAND }
         { [11] } _SubItem.Add(IntToStr(EINZEL_AUFWAND));
 
-        { CacheBaustelle_VORMITTAGS_ZEIT_VON =
+        { CacheBaustelle_VORMITTAGS_ZEIT_VON }
         { [12] } Zeit := FieldByName('VORMITTAGS_ZEIT_VON').AsString;
         if (Zeit='') then
           Zeit := '08:00:00';
         _SubItem.Add(Zeit);
 
-        { CacheBaustelle_VORMITTAGS_ZEIT_BIS =
+        { CacheBaustelle_VORMITTAGS_ZEIT_BIS }
         { [13] } Zeit := FieldByName('VORMITTAGS_ZEIT_BIS').AsString;
         if (Zeit='') then
           Zeit := '13:00:00';
         _SubItem.Add(Zeit);
 
-        { CacheBaustelle_NACHMITTAGS_ZEIT_VON =
+        { CacheBaustelle_NACHMITTAGS_ZEIT_VON }
         { [14] } Zeit := FieldByName('NACHMITTAGS_ZEIT_VON').AsString;
         if (Zeit='') then
           Zeit := '12:00:00';
         _SubItem.Add(Zeit);
 
-        { CacheBaustelle_NACHMITTAGS_ZEIT_BIS =
+        { CacheBaustelle_NACHMITTAGS_ZEIT_BIS }
         { [15] } Zeit := FieldByName('NACHMITTAGS_ZEIT_BIS').AsString;
         if (Zeit='') then
           Zeit := '18:00:00';
@@ -3037,7 +3037,7 @@ begin
   result := TStringList.create;
   EnsureCache_Baustelle;
   for n := 0 to pred(CacheBaustelle.count) do
-    result.addobject(TStringList(CacheBaustelle.Objects[n])[CacheBaustelle_NUMMERN_PREFIX], TObject(strtoint(CacheBaustelle[n])));
+    result.addobject(TStringList(CacheBaustelle.Objects[n])[CacheBaustelle_NUMMERN_PREFIX], TObject(PtrInt(strtoint(CacheBaustelle[n]))));
   result.sort;
 end;
 
@@ -3048,7 +3048,7 @@ begin
   result := TStringList.create;
   EnsureCache_Baustelle;
   for n := 0 to pred(CacheBaustelle.count) do
-    result.addobject(TStringList(CacheBaustelle.Objects[n])[CacheBaustelle_NAME], TObject(strtoint(CacheBaustelle[n])));
+    result.addobject(TStringList(CacheBaustelle.Objects[n])[CacheBaustelle_NAME], TObject(PtrInt(strtoint(CacheBaustelle[n]))));
   result.sort;
 end;
 
@@ -5726,10 +5726,10 @@ var
           Kostenstelle := ExtractSegmentBetween(InfoS[0], '[', ']');
           i := sKostenstellen.indexof(Kostenstelle);
           if (i = -1) then
-            sKostenstellen.addobject(Kostenstelle, TObject(_SingleArbeitszeit))
+            sKostenstellen.addobject(Kostenstelle, TObject(PtrInt(_SingleArbeitszeit)))
           else
             sKostenstellen.Objects[i] := TObject(
-              { } Integer(sKostenstellen.Objects[i]) +
+              { } Integer(PtrInt(sKostenstellen.Objects[i])) +
               { } _SingleArbeitszeit);
         end;
 
@@ -5764,7 +5764,7 @@ var
       begin
         DatensammlerLokal.Add('load SUMME');
         DatensammlerLokal.Add('STUNDENSATZ=' + format('%m', [Stundensatz]));
-        Sekunden := Integer(sKostenstellen.Objects[n]);
+        Sekunden := Integer(PtrInt(sKostenstellen.Objects[n]));
         DatensammlerLokal.Add('KOSTENSTELLE=' + sKostenstellen[n]);
         DatensammlerLokal.Add('SEKUNDEN=' + inttostr(Sekunden));
         DatensammlerLokal.Add('ZEIT=' + 'Kostenstelle' + #160 + sKostenstellen[n] + #160#160#160 +
@@ -6210,8 +6210,8 @@ begin
         if (_AllVerlage.indexof(SUCHBEGRIFF) <> -1) then
           SUCHBEGRIFF := SUCHBEGRIFF + ' [' + inttostr(VERLAG_R) + ']';
 
-        _AllVerlage2.addobject(SUCHBEGRIFF, pointer(VERLAG_R));
-        _AllVerlage.addobject(SUCHBEGRIFF, pointer(PERSON_R));
+        _AllVerlage2.addobject(SUCHBEGRIFF, TObject(PtrInt(VERLAG_R)));
+        _AllVerlage.addobject(SUCHBEGRIFF, TObject(PtrInt(PERSON_R)));
         Apinext;
       end;
     end;
@@ -6239,7 +6239,7 @@ begin
   if (k = -1) then
     result := -1
   else
-    result := Integer(_AllVerlage.Objects[k]);
+    result := Integer(PtrInt(_AllVerlage.Objects[k]));
 end;
 
 function e_r_Verlag_PERSON_R(rid: Integer): string;
@@ -6248,7 +6248,7 @@ var
 begin
   EnsureCache_Verlag;
   for n := 0 to pred(_AllVerlage.count) do
-    if rid = Integer(_AllVerlage.Objects[n]) then
+    if rid = Integer(PtrInt(_AllVerlage.Objects[n])) then
     begin
       result := _AllVerlage[n];
       exit;
@@ -6262,7 +6262,7 @@ var
 begin
   EnsureCache_Verlag;
   for n := 0 to pred(_AllVerlage2.count) do
-    if rid = Integer(_AllVerlage2.Objects[n]) then
+    if rid = Integer(PtrInt(_AllVerlage2.Objects[n])) then
     begin
       result := _AllVerlage2[n];
       exit;
@@ -6277,7 +6277,7 @@ begin
   EnsureCache_Verlag;
   k := _AllVerlage2.indexof(s);
   if k <> -1 then
-    k := Integer(_AllVerlage2.Objects[k]);
+    k := Integer(PtrInt(_AllVerlage2.Objects[k]));
   result := k;
 end;
 
@@ -8175,7 +8175,7 @@ begin
             { [01] } FieldByName('VORMITTAGS').AsString + ';' +
             { [02] } FieldByName('MASTER_R').AsString + ';' +
             { [03] } FieldByName('STATUS').AsString + ';' +
-            { [04] } FieldByName('BAUSTELLE_R').AsString, TObject(FieldByName('RID').AsInteger));
+            { [04] } FieldByName('BAUSTELLE_R').AsString, TObject(PtrInt(FieldByName('RID').AsInteger)));
           APInext;
         end;
 
@@ -8237,7 +8237,7 @@ begin
             // Ein historischer Datensatz, jedoch ohne Monteur-Info
             // d.h. der Monteur weis nix davon
             Auftrag_RID := FieldByName('RID').AsInteger;
-            if (PreLookl.indexofobject(TObject(Auftrag_RID)) = -1) then
+            if (PreLookl.indexofobject(TObject(PtrInt(Auftrag_RID))) = -1) then
               break;
 
             // Bei freier Terminwahl kommen nur die "offenen"
@@ -8915,13 +8915,13 @@ var
           PreFix := '';
 
         if (z <> '') then
-          ZaehlerNummernNeu.addobject(ART + '~' + PreFix + z, pointer(AUFTRAG_R));
+          ZaehlerNummernNeu.addobject(ART + '~' + PreFix + z, TObject(PtrInt(AUFTRAG_R)));
 
         if ZaehlerNummernNeuAusN1 then
         begin
           z := PROTOKOLL.values['N1'];
           if (z <> '') then
-            ZaehlerNummernNeu.addobject(ART + '~' + PreFix + z, pointer(AUFTRAG_R));
+            ZaehlerNummernNeu.addobject(ART + '~' + PreFix + z, TObject(PtrInt(AUFTRAG_R)));
         end;
 
         ApiNext;
@@ -12546,7 +12546,7 @@ begin
         if pNummerConcatMaterial then
           _ZaehlerNummer := FieldByName('MATERIAL_NUMMER').AsString + '~' + _ZaehlerNummer;
 
-        ZaehlerNummernImBestand.addobject(_ZaehlerNummer, TObject(FieldByName('RID').AsInteger));
+        ZaehlerNummernImBestand.addobject(_ZaehlerNummer, TObject(PtrInt(FieldByName('RID').AsInteger)));
 
       until true;
 
@@ -12601,7 +12601,7 @@ begin
 
           // keine gültige Zeile -> löschen
           _zaehler_nummer := sSpaltenWert(ZaehlerNummer_FieldIndex);
-          ZaehlerNummernInCSV.addobject(e_r_Sparte(_Art) + FormatZaehlerNummerAsOneWord(_zaehler_nummer), TObject(m));
+          ZaehlerNummernInCSV.addobject(e_r_Sparte(_Art) + FormatZaehlerNummerAsOneWord(_zaehler_nummer), TObject(PtrInt(m)));
 
         end
         else
@@ -12609,7 +12609,7 @@ begin
 
           //
           ZaehlerNummernInCSV.addobject(e_r_Sparte(_Art) + FormatZaehlerNummerAsOneWord
-            (sSpaltenWert(ZaehlerNummer_FieldIndex)), TObject(m));
+            (sSpaltenWert(ZaehlerNummer_FieldIndex)), TObject(PtrInt(m)));
         end;
       until true;
       FreeAndNil(SpaltenWerte_Primaer);
@@ -12628,7 +12628,7 @@ begin
           if (_Art = '') then
             break;
 
-        ZaehlerNummernInCSV.addobject(FormatZaehlerNummerAsOneWord(sSpaltenWert(ZaehlerNummer_FieldIndex)), TObject(m));
+        ZaehlerNummernInCSV.addobject(FormatZaehlerNummerAsOneWord(sSpaltenWert(ZaehlerNummer_FieldIndex)), TObject(PtrInt(m)));
       until true;
       FreeAndNil(SpaltenWerte_Primaer);
     end;
@@ -13962,7 +13962,7 @@ var
           {} inttostrN(FieldByName('NUMMER').AsInteger, cAuftragsNummer_Length) + ' ' +
           {} inttostrN(FieldByName('NUMMER').AsInteger, cAuftragsNummer_Length);
 
-        TheSearch.AddWords(AddStr, TObject(FieldByName('RID').AsInteger));
+        TheSearch.AddWords(AddStr, TObject(PtrInt(FieldByName('RID').AsInteger)));
 
         APInext;
       end;
