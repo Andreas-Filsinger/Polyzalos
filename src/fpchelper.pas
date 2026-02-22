@@ -29,7 +29,8 @@ For use when the JCL string functions are not avaialable
 }
 unit fpchelper;
 
-{$mode delphi}
+{$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -484,12 +485,7 @@ const
   NativeDoubleQuote = Char('"');
   NativeSingleQuote = Char('''');
 
-
-{$IFNDEF DELPHI12}
-{$IFNDEF DELPHI14}
 function CharInSet(const C: Char; const testSet: TSysCharSet): Boolean;
-{$ENDIF}
-{$ENDIF}
 function CharIsControl(const C: Char): Boolean;
 function CharIsAlpha(const C: Char): Boolean;
 function CharIsAlphaNum(const C: Char): Boolean;

@@ -46,7 +46,7 @@ uses
 
   // Tools
   anfix, CareTakerClient, WordIndex, c7zip,
-  gplists, Foto,
+  GpIntegerLists, Foto,
 
   // OrgaMon
   globals;

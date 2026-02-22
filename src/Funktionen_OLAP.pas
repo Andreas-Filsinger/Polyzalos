@@ -41,17 +41,10 @@ interface
 uses
   // System
   Classes,
-
-  {$ifdef fpc}
-  // fpspreadsheet
   fpspreadsheet,
-  {$else}
-  // FlexCel
-  FlexCel.Core, FlexCel.xlsAdapter,
-  {$endif}
 
   // Tools
-  gplists, CareTakerClient, anfix,
+  GpIntegerLists, CareTakerClient, anfix,
   html,
 
   // OrgaMon
@@ -103,15 +96,10 @@ uses
  WordIndex, ExcelHelper, OpenOfficePDF,
  Geld, basic,
 
-{$ifdef fpc}
  // ZEOS
  ZDatasetUtils,
  ZPlainFirebirdInterbaseDriver,
  //ZPlainFirebirdInterbaseConstants,
-{$else}
- // IB-Objects
- IB_Components, IB_Header, IB_Session,
-{$endif}
 
  // OrgaMon
  dbOrgaMon,

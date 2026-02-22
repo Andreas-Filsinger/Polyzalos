@@ -60,7 +60,7 @@ uses
   //ZStreamBlob,
   ZDbcInterbase6,
   ZSequence,
-  gplists,
+  GpIntegerLists,
   WordIndex,
   anfix,
   basic,

@@ -50,7 +50,7 @@ unit Funktionen_Buch;
 interface
 
 uses
-  Classes, gplists, anfix,
+  Classes, GpIntegerLists, anfix,
   Geld, dbOrgaMon;
 
 const
@@ -217,24 +217,19 @@ function b_r_KontoSuchindexFName (KontoNr : String) : String;
 implementation
 
 uses
+  // Core
   Math, SysUtils,
+
+  // Utils
+  fpchelper, html, CareTakerClient,
+  WordIndex, srvXMLRPC, DTA,
+
+  // Polyzalos
+  globals,
   Funktionen_Basis,
   Funktionen_Artikel,
   Funktionen_Auftrag,
-  Funktionen_Beleg,
-{$IFDEF fpc}
-  fpchelper,
-{$ELSE}
-  IB_Access,
-  IB_Components,
-{$ENDIF}
-{$IFNDEF CONSOLE}
-  Datenbank,
-{$ENDIF}
-  globals, html,
-
-  CareTakerClient,
-  WordIndex, srvXMLRPC, DTA;
+  Funktionen_Beleg;
 
 { TDataModuleBuchungsMotor }
 
@@ -3047,11 +3042,7 @@ begin
     Params.BeginUpdate;
     Params[0].AsInteger := BELEG_R;
     Params[1].AsInteger := TEILLIEFERUNG;
-{$IFDEF fpc}
     Params.EndUpdate;
-{$ELSE}
-    Params.EndUpdate(true);
-{$ENDIF}
     ApiFirst;
     if not(eof) then
     begin

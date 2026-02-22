@@ -112,7 +112,7 @@ uses
 
   // OrgaMon - Tools
   geld, Mapping, anfix,
-  html, WordIndex, gplists,
+  html, WordIndex, GpIntegerLists,
   binlager, ExcelHelper,
 
   {$ifdef fpc}

@@ -50,14 +50,8 @@ unit Funktionen_Beleg;
 interface
 
 uses
-  Classes,
-{$IFNDEF fpc}
-  IB_Components,
-  IB_Access,
-{$ENDIF}
-  anfix, gplists, c7zip,
-  globals,
-  dbOrgaMon;
+  Classes, anfix, GpIntegerLists,
+  c7zip, globals, dbOrgaMon;
 
 type
   eSuchSubs = (eSS_Titel, eSS_Numero, eSS_PaperColor, eSS_Verlag, eSS_Serie, eSS_Komponist, eSS_Arranger, eSS_Preis,
@@ -100,7 +94,6 @@ function e_r_BelegDimensionen(
 
 // Raum eines Beleges berechnen, anhand der Auftragsmenge und der Artikeldimensionen
 function e_r_BelegVolumen(BELEG_R: Integer) : int64; // [X*Y*Z*MENGE_UNGELIEFERT]
-
 
 // Beleg-Löschung durchführen
 procedure e_d_Belege;
@@ -299,9 +292,6 @@ function e_r_Versandfaehig(ib_q: TdboDataSet): boolean;
 //
 function e_r_LeerGewicht(PACKFORM_R: integer): integer;
 
-///////////////////////////////////////////
-
-
 // legt eine neue Person (vorläufig) an. Über sie kann der Kunde
 // vorbestellungen / vormerkungen anlegen.
 function e_w_PersonNeu: integer; { : RID }
@@ -468,24 +458,14 @@ procedure EreignisCleanUp;
 implementation
 
 uses
-  // Delphi
-  math,
-  SysUtils,
+  // System
+  math, SysUtils, graphics,
 
   // Tools
-{$IFNDEF fpc}
-  System.UITypes,
-  {$ELSE}
-  graphics,
   fpchelper,
-{$ENDIF}
   html, Geld, DTA,
   SimplePassword, WordIndex,
 
-  // DataBase
-{$IFNDEF CONSOLE}
-  Datenbank,
-{$ENDIF}
   // OrgaMon
   CareTakerClient,
   Funktionen_OLAP,
@@ -507,7 +487,6 @@ procedure EndTransaction;
 begin
   //
 end;
-
 
 function e_w_BestellBeleg(PERSON_R: integer): integer;
 var
@@ -9181,11 +9160,7 @@ begin
           Params.BeginUpdate;
           ParamByName('CR').AsInteger := ARTIKEL_R;
           ParamByName('RANG').AsFloat := RANG;
-{$IFDEF fpc}
           Params.EndUpdate;
-{$ELSE}
-          Params.EndUpdate(true);
-{$ENDIF}
           execute;
         end;
 
@@ -9200,11 +9175,7 @@ begin
           ParamByName('CR_A').AsInteger := ARTIKEL_R;
           ParamByName('CR_B').AsInteger := AUSGABEART_R;
           ParamByName('RANG').AsFloat := RANG;
-{$IFDEF fpc}
           Params.EndUpdate;
-{$ELSE}
-          Params.EndUpdate(true);
-{$ENDIF}
           execute;
         end;
 

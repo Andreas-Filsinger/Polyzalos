@@ -197,7 +197,7 @@ begin
    { } DatumLog + '-' +
    { } e_r_Kontext + '-' +
    { } 'ERROR'+
-   {} cLogExtension;
+   { } cLogExtension;
   if not(only4yi) then
    inc(ReportedErrorCount);
 end;

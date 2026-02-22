@@ -55,7 +55,7 @@ uses
   globals,
   Funktionen_Basis,
   Funktionen_Auftrag,
-  Identitaet, dbOrgaMon, PasMP, GpLists,
+  Identitaet, dbOrgaMon, PasMP,
   tgputtylib,
   zcomponent,
   zcore;

@@ -43,7 +43,7 @@ unit Funktionen_Auftrag;
 interface
 
 uses
-  Classes, anfix, gplists,
+  Classes, anfix, GpIntegerLists,
   globals, dbOrgaMon, Sperre,
   txHoliday;
 
@@ -8720,7 +8720,7 @@ function e_w_CreateFiles(
  {} Files: TStringList;
  {} fb : TFeedBack = nil): boolean;
 
-  {$I Feedback.inc}
+{$I Feedback.inc}
 
 var
   ExcelWriteRow: integer;

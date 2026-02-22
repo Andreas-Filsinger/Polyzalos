@@ -43,7 +43,7 @@ uses
   Classes,
 
   // Tools
-  gplists, CareTakerClient, anfix,
+  GpIntegerLists, CareTakerClient, anfix,
   html,
 
   // OrgaMon

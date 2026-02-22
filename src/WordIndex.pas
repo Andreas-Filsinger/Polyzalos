@@ -37,7 +37,7 @@ interface
 
 uses
   Classes, Contnrs,
-  math, gplists;
+  math, GpIntegerLists;
 
 const
   WordIndexVersion: single = 1.031; // ..\rev\WordIndex.rev.txt

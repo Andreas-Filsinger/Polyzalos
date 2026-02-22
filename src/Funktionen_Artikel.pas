@@ -41,7 +41,7 @@ interface
 uses
   Classes,
   anfix,
-  gplists,
+  GpIntegerLists,
   c7zip,
   globals,
   dbOrgaMon;

@@ -86,17 +86,12 @@ const
 implementation
 
 uses
-  Math, Globals,
- {$IFNDEF fpc}
-  IB_Components,
-  IB_Access,
-  Datenbank,
-  System.Contnrs,
- {$ENDIF}
-  c7zip, dbOrgaMon, CareTakerClient, gplists,
-{$IFNDEF CONSOLE}
-  //
-{$ENDIF}
+  Math,
+
+  c7zip, dbOrgaMon, CareTakerClient,
+  GpIntegerLists,
+
+  globals,
   Funktionen_Basis,
   Funktionen_Artikel,
   Funktionen_OLAP,

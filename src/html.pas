@@ -39,21 +39,11 @@ unit html;
 interface
 
 uses
-  classes,
-  anfix,
-  gplists
+  // System
+  classes, lazutf8,
 
-{$IFNDEF FPC}
-    ,
-  System.UITypes
-{$ELSE}
-  , lazutf8
-  , fpchelper
-{$ifndef console}
-  ,Graphics
-{$endif}
-{$ENDIF}
-    ;
+  // Tools
+  anfix, GpIntegerLists, fpchelper;
 
 const
   cVarDelimiter = '~';
@@ -265,9 +255,8 @@ function XMLEmpty(s: string): string;
 implementation
 
 uses
-  CareTakerClient,
-  SysUtils, math,
-  IniFiles;
+  SysUtils, math, IniFiles,
+  CareTakerClient;
 
 const
   cERRORText = 'ERROR:';

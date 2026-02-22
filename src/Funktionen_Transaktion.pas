@@ -43,7 +43,7 @@ uses
  SysUtils, Classes,
 
  // anfix
- gplists, anfix;
+ GpIntegerLists, anfix;
 
 // doBO1 - Caching - Elemente
 const
@@ -228,16 +228,7 @@ uses
   graphics,
 
   // Tools
-  c7zip, html,
-  WordIndex,
-
-{$ifdef fpc}
-{$else}
-  // IB-Objects
-  IB_Components, IB_Access,
-  // XLS Sachen
-  FlexCel.Core, FlexCel.xlsAdapter,
-{$endif}
+  c7zip, html, WordIndex,
 
   // OrgaMon
   globals, dbOrgaMon, Sperre,
