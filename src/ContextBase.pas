@@ -29,7 +29,7 @@ unit ContextBase;
 interface
 
 uses
-  gplists;
+  GpIntegerLists;
 
 type
   TContext = class(TgpIntegerList)

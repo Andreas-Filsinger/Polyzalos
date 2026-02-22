@@ -182,6 +182,15 @@
         <Filename Value="src/GpIntegerLists.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src/sperre.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Sperre"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src/ContextBase.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

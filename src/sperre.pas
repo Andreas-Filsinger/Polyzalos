@@ -21,27 +21,18 @@
   |    You should have received a copy of the GNU General Public License
   |    along with this program.  If not, see <http://www.gnu.org/licenses/>.
   |
-  |    http://orgamon.org/
+  |    https://wiki.orgamon.org/
   |
 }
 unit Sperre;
 
-{$ifdef fpc}
-{$mode delphi}
-{$endif}
+{$mode objfpc}{$H+}
 
 interface
 
 uses
-  {$ifndef fpc}
-  System.UITypes,
-  {$else}
-  fpchelper, graphics,
-  {$endif}
-  classes,
-  anfix,
-  dateutils,
-  gplists;
+  graphics, classes,dateutils,
+  fpchelper, anfix, GpIntegerLists;
 
 { S P E R R E
 
@@ -77,14 +68,8 @@ const
   { } cSperre_ZeitAngabe_Vormittag,
   { } cSperre_ZeitAngabe_Nachmittag,
   { } cSperre_ZeitAngabe_Mittag];
-{$ifdef fpc}
-cSperre_ColourDefault = $20000000;
-cSperre_ColourRed = $0000FF;
-{$else}
-cSperre_ColourDefault =     TColors.SysDefault;
-cSperre_ColourRed =     TColors.Red;
-{$endif}
-
+  cSperre_ColourDefault = $20000000;
+  cSperre_ColourRed = $0000FF;
 
 var
   sDiagnose: TStringList;
@@ -265,9 +250,9 @@ type
     function Count: Integer;
     property Row[Index: Integer]: TAuslastungRow read get write put; default;
     property RID[Index: Integer]: Integer read GetRID write PutRID;
-    procedure Add(s: string; RID: Integer);
+    procedure Add(s: string; pRID: Integer);
     function IndexOf(s: string): Integer; overload;
-    function IndexOf(RID: Integer): Integer; overload;
+    function IndexOf(pRID: Integer): Integer; overload;
     procedure SortBy(BAUSTELLE_R: Integer);
     destructor Destroy; virtual;
     constructor Create;
@@ -621,7 +606,7 @@ var
       if (n <> -1) then
       begin
         Result := True;
-        _ColorIfBad := Integer(Umstand.Objects[n]);
+        _ColorIfBad := Integer(PtrInt(Umstand.Objects[n]));
       end;
     end
     else
@@ -991,8 +976,8 @@ end;
 
 procedure TAuslastungZelle.BaustelleAdd(BAUSTELLE_R: Integer);
 begin
-  if (Baustellen.IndexOf(TObject(BAUSTELLE_R)) = -1) then
-    Baustellen.Add(TObject(BAUSTELLE_R));
+  if (Baustellen.IndexOf(TObject(PtrInt(BAUSTELLE_R))) = -1) then
+    Baustellen.Add(TObject(PtrInt(BAUSTELLE_R)));
 end;
 
 function TAuslastungZelle.Last: string;
@@ -1128,12 +1113,12 @@ begin
   // nun alle anderen
 end;
 
-procedure TAuslastung.Add(s: string; RID: Integer);
+procedure TAuslastung.Add(s: string; pRID: Integer);
 var
   Index: Integer;
 begin
   Index := Monteure.Count;
-  Monteure.addObject(s, TObject(RID));
+  Monteure.addObject(s, TObject(PtrInt(pRID)));
   SetLength(Rows, succ(Index));
   Rows[Index] := TAuslastungRow.Create;
   with Rows[Index] do
@@ -1152,9 +1137,9 @@ begin
   Result := Monteure.IndexOf(s);
 end;
 
-function TAuslastung.IndexOf(RID: Integer): Integer;
+function TAuslastung.IndexOf(pRID: Integer): Integer;
 begin
-  Result := Monteure.Indexofobject(TObject(RID));
+  Result := Monteure.Indexofobject(TObject(PtrInt(pRID)));
 end;
 
 procedure TAuslastung.put(Index: Integer; const s: TAuslastungRow);
@@ -1169,17 +1154,17 @@ end;
 
 function TAuslastung.GetRID(Index: Integer): Integer;
 begin
-  Result := Integer(Monteure.Objects[Index]);
+  Result := Integer(PtrInt(Monteure.Objects[Index]));
 end;
 
 procedure TAuslastung.PutRID(Index: Integer; const Value: Integer);
 begin
-  Monteure.Objects[Index] := TObject(Value);
+  Monteure.Objects[Index] := TObject(PtrInt(Value));
 end;
 
 function TAuslastungRow.EigeneBaustelle(RID: Integer): boolean;
 begin
-  Result := (Baustellen.IndexOf(TObject(RID)) <> -1);
+  Result := (Baustellen.IndexOf(TObject(PtrInt(RID))) <> -1);
 end;
 
 function TAuslastungRow.GetBaustellen: TList;
