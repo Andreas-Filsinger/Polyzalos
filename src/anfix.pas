@@ -536,7 +536,7 @@ procedure rZero(var r: TRect);
 
 function mkrect(x, y, xl, yl: integer): TRect;
 function InSide(const x, y: integer; const r: TRect): boolean; overload;
-function InSide(const x, y: integer; Polygon: array of TPoint): boolean; overload;
+function InSide(const x, y: integer; const Polygon: array of TPoint): boolean; overload;
 
 function RectCollision(const a, b: TRect): boolean;
 function Str2Rect(ValueStr: string): TRect;
@@ -2750,29 +2750,103 @@ begin
   InSide := (x >= r.left) and (x <= r.right) and (y >= r.top) and (y <= r.Bottom);
 end;
 
+(*
 function InSide(const x, y: integer; Polygon: array of TPoint): boolean;
-{$ifdef MSWINDOWS}
+//  The function will return True if the point x,y is inside the polygon, or
+//  False if it is not.
+//
+//  Original C code: http://www.visibone.com/inpoly/inpoly.c.txt
+//
+//  Translation from C by Felipe Monteiro de Carvalho
+//
+//  License: Public Domain
 
 var
-  PolyHandle: HRGN;
+  xnew, ynew: Cardinal;
+  xold,yold: Cardinal;
+  x1,y1: Cardinal;
+  x2,y2: Cardinal;
+  i, npoints: Integer;
 begin
-  PolyHandle := CreatePolygonRgn(Polygon[0], length(Polygon), Winding);
-  result := PtInRegion(PolyHandle, x, y);
-  DeleteObject(PolyHandle);
+  Result := False;
+  npoints := Length(Polygon);
+  if (npoints < 3) then Exit;
+
+  xold := Polygon[npoints-1].X;
+  yold := Polygon[npoints-1].Y;
+  for i := 0 to npoints - 1 do
+    begin
+      xnew := Polygon[i].X;
+      ynew := Polygon[i].Y;
+      if (xnew > xold) then
+        begin
+          x1:=xold;
+          x2:=xnew;
+          y1:=yold;
+          y2:=ynew;
+        end
+      else
+        begin
+          x1:=xnew;
+          x2:=xold;
+          y1:=ynew;
+          y2:=yold;
+        end;
+
+      // edge "open" at left end
+      if (((xnew < X) = (X <= xold)) and ((Y-y1)*(x2-x1) < (y2-y1)*(X-x1))) then
+        Result := not Result;
+
+      xold:=xnew;
+      yold:=ynew;
+    end;
 end;
-{$else}
+*)
+(*
+function PointInPolygon(var xp, yp: array of TGeoFloat; x, y: TGeoFloat): Boolean;
+// The code below is from Wm. Randolph Franklin <wrf@ecse.rpi.edu>
+// with some minor modifications for speed.  It returns 1 for strictly
+// interior points, 0 for strictly exterior, and 0 or 1 for points on
+// the boundary.
+var
+  i, j: Integer;
 begin
-  // imp pend:
-  result := false;
+  Result := False;
+  if high(xp) = high(yp) then begin
+      j := high(xp);
+      for i := 0 to high(xp) do begin
+          if ((((yp[i] <= y) and (y < yp[j])) or ((yp[j] <= y) and (y < yp[i])))
+            and (x < (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i])) then
+              Result := not Result;
+          j := i;
+        end;
+    end;
 end;
+*)
 
-{$endif}
-
+Function InSide(Const x,y : Integer; Const Polygon: Array of TPoint): Boolean;
+// Quelle : https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
+Var
+  i, j: integer;
+Begin
+  Result := false;
+  j := high(Polygon);
+  for i := low(Polygon) to high(Polygon) do
+  begin
+    If (((polygon[i].y > y) <> (polygon[j].y > y)) and
+      (x < (polygon[j].x - Polygon[i].x) * (y - Polygon[i].y) / (Polygon[j].y - Polygon[i].y) + Polygon[i].x)) then
+      Result := Not Result;
+    j := i;
+  end;
+end;
 
 function InSideRect(const a, b: TRect): boolean;
 begin
-  result := InSide(a.left, a.top, b) or InSide(a.left, a.Bottom, b) or InSide(a.right, a.top, b) or
-    InSide(a.right, a.Bottom, b);
+  result :=
+    {} InSide(a.left, a.top, b) or
+    {} InSide(a.left, a.Bottom, b) or
+    {} InSide(a.right, a.top, b) or
+    {} InSide(a.right, a.Bottom, b);
 end;
 
 function RectCollision(const a, b: TRect): boolean;
@@ -3557,7 +3631,7 @@ begin
   if (ioresult <> 0) then
     exit;
 {$I+}
-  _fsize := filesize(InF);
+  _fsize := FileSize(InF);
 
   if (_fsize > 0) then
   begin
@@ -3832,16 +3906,16 @@ var
   CPUMhzCalculated: boolean = false;
   ClockStart: int64;
   _CPUkhz: int64;
-  TickStart: dword;
+  TickStart: LongWord;
 
 function UpTime: TAnfixTime;
 begin
-  result := GetTickCount div 1000;
+  result := GetTickCount64 div 1000;
 end;
 
 function RunTime: TAnfixTime;
 begin
-  result := (GetTickCount - TickStart) div 1000;
+  result := (GetTickCount64 - TickStart) div 1000;
 end;
 
 function RDTSC: int64;
@@ -4803,8 +4877,8 @@ begin
   l := length(dir);
   if (l > 0) then
   begin
-    if (dir[l] <> PathDelim) then
-      dir := dir + PathDelim;
+    if (dir[l] <> DirectorySeparator) then
+      dir := dir + DirectorySeparator;
     DosError := findfirst(dir + '*', faAnyFile, sr);
     while (DosError = 0) do
     begin
@@ -4831,7 +4905,7 @@ begin
   l := length(dir);
   if (l = 0) then
     exit;
-  if (dir[l] = PathDelim) then
+  if (dir[l] = DirectorySeparator) then
     SetLength(dir, pred(l));
   if DirExists(dir) or (length(dir) < 3) then
     exit;
@@ -6039,7 +6113,7 @@ end;
 
 initialization
  ClockStart := RDTSC;
- TickStart := GetTickCount;
+ TickStart := GetTickCount64;
 
  StartDebugger := IsParam('--d');
  StartDebug('anfix');

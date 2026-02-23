@@ -967,7 +967,7 @@ begin
   while (p>0) do
   begin
     case Result[p] of
-      PathDelim: Exit;
+      DirectorySeparator: Exit;
       '.': Result := copy(Result, 1, p-1);
     end;
     Dec(p);
@@ -982,7 +982,7 @@ end;
 function PathRemoveSeparator(const Path: string): string;
 begin
   Result := Path;
-  if (Result <> '') and (Result[Length(Result)] = PathDelim) then
+  if (Result <> '') and (Result[Length(Result)] = DirectorySeparator) then
     Delete(Result, Length(Result), 1);
 end;
 
@@ -997,7 +997,7 @@ end;
 
 function GetProgramFilesFolder : string;
 begin
-  result := '// imp pend';
+  result := ProgramDirectory;
 end;
 
 procedure StrResetLength(var S: AnsiString);
