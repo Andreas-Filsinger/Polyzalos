@@ -2590,7 +2590,7 @@ end;
 
 function Frequently: LongWord; // [ms] since boot
 begin
-  result := GetTickCount;
+  result := GetTickCount64;
 end;
 
 function Frequently(var LastTime: LongWord; DelayCount: LongWord): boolean;
@@ -2598,7 +2598,7 @@ var
   MyTick: LongWord;
 begin
   result := false;
-  MyTick := GetTickCount;
+  MyTick := GetTickCount64;
   if (LastTime = 0) or (MyTick > LastTime + DelayCount) or (MyTick < LastTime) then
   begin
     result := true;
@@ -2607,23 +2607,12 @@ begin
 end;
 
 function FSize(FName: string): int64;
-var
-  F: Tsearchrec;
-  H : File;
 begin
   result := cFSize_NotExists;
-  if (SysUtils.findfirst(FName, faAnyFile, F) = 0) then
-  begin
-    try
-      Assign(H,FName);
-      reset(H);
-      result := FileSize(H);
-      close(H);
-    finally
-      SysUtils.findclose(F);
-    end;
-  end;
+  if FileExists(FName) then
+   result := FileSize(FName);
 end;
+
 
 function RevToStr(r: single): string;
 var

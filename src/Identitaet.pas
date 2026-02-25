@@ -1230,11 +1230,16 @@ begin
   Magneto.Free;
 end;
 
-var
- HTTPS: THTTP2_Connection;
+type
+ THTTPS = class(THTTP2_Connection)
+
+   procedure Request(R: TStringList);
+   procedure Error(R: TList);
+
+ end;
 
 
-procedure Request(R: TStringList);
+procedure THTTPS.Request(R: TStringList);
 var
   C : RawByteString;
   RequestedResourceName : string;
@@ -1255,8 +1260,6 @@ begin
   RequestedResourceName := 'index.html';
 
  // deliver a file
- with HTTPS do
- begin
    with HEADERS_OUT do
    begin
     clear;
@@ -1271,18 +1274,24 @@ begin
    store(r_Header(ID));
    storeFile(RequestedResourceName,ID);
    write;
- end;
 
  R.Free;
 end;
 
+procedure THTTPS.Error(R: TList);
+begin
+
+end;
+
+var
+  HTTPS: THTTPS;
 
 procedure RunAsPolyzalos;
 var
  s: TStringList;
  n: integer;
  FD: longint;
-
+ T: LongWord;
 begin
  // Prepare
  s := e_r_BasePlug;
@@ -1290,25 +1299,35 @@ begin
   writeln(s[n]);
  s.free;
  systemd.Ready;
-
+ T := frequently;
  writeln(cryptossl.Version);
 
  (*
  repeat
-   systemd.Wuff;
    sleep(10000);
  until Eternity;
  *)
 
- HTTPS := THTTP2_Connection.create;
+ HTTPS := THTTPS.create;
  with HTTPS do
  begin
-//   OnRequest := @Request;
+   OnRequest := @Request;
+   OnError := @Error;
    //ShowDebugmessages;
-   CTX:= StrictHTTP2Context;
+   CTX := StrictHTTP2Context;
    Path := '/mnt/r/srv/hosts/';
    FD := getSocket;
    Accept(FD);
+   while true do
+   begin
+    CheckSynchronize;
+    if frequently(T,10000) then
+    begin
+     systemd.Wuff;
+     system.write('.');
+    end;
+    sleep(10);
+   end;
  end;
 
 end;

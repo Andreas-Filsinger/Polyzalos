@@ -270,19 +270,8 @@ uses
  dynlibs;
 
 const
-{$ifdef MSWINDOWS}
-  {$ifdef win64}
-    cLIB_NAME_CRYPTO = 'libcrypto-3-x64.dll';
-    cLIB_NAME_SSL = 'libssl-3-x64.dll';
-  {$else}
-    cLIB_NAME_CRYPTO = 'libcrypto-3.dll';
-    cLIB_NAME_SSL = 'libssl-3.dll';
-  {$endif}
-{$else}
-   cLIB_NAME_CRYPTO = 'libcrypto.so.3';
-   cLIB_NAME_SSL = 'libssl.so.3';
-{$endif}
-
+ cLIB_NAME_CRYPTO = 'libcrypto.so.3';
+ cLIB_NAME_SSL = 'libssl.so.3';
 
 procedure Log(s:string);
 begin

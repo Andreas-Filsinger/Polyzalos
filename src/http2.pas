@@ -266,7 +266,7 @@ function getSocket: cint;
 implementation
 
 uses
- BaseUnix, Unix, Sockets,
+ BaseUnix, Unix, Sockets, FileUtil,
  fpchelper,
  systemd;
 
@@ -531,7 +531,7 @@ procedure Log(s:string);
 begin
  mDebug.add(s);
  {$ifdef console}
- if DoLog then
+// if DoLog then
   writeln(s);
  {$endif}
 end;
@@ -1408,11 +1408,6 @@ end;
 
 { THTTP2_Reader }
 
-{$ifdef windows}
-const
- WSAECONNABORTED = 10053;
-{$endif}
-
 procedure THTTP2_Reader.Execute;
 var
  BytesRead : csize_t;
@@ -1422,17 +1417,22 @@ var
  D : RawByteString;
  ERROR: integer;
 begin
+ writeln('Execute');
    if assigned(FSSL_ERROR) then
    begin
+     writeln('1423');
      // Just inform about the start of the task
      SSL_ERROR.enqueue(SSL_ERROR_NONE);
+     writeln('1426');
      Synchronize(FSSL_ERROR);
+     writeln('1428');
    end;
 
    while not Terminated do
    begin
-
+    writeln('Before Read');
     SSL_Read_Result := SSL_read_ex(FSSL, @buf, sizeof(buf), BytesRead);
+    writeln('After Read');
 
     if (SSL_Read_Result=SSL_RETURN_ERROR) then
     begin
@@ -1470,6 +1470,7 @@ begin
 
     end else
     begin
+     writeln('Terminated');
 
 
      if assigned(FNoise) then
@@ -1726,6 +1727,7 @@ begin
 
   // Nehme eine Verbindung an!
   repeat
+
     SSL_Result := SSL_accept(SSL);
     if (SSL_Result<>1) then
     begin
@@ -1777,11 +1779,14 @@ begin
      Reader := THTTP2_Reader.Create(SSL);
      Reader.OnNoise:=@Noise;
      Reader.OnSSL_ERROR:=@Error;
+     writeln('Before Thread-Start');
      Reader.Start;
+     writeln('After Thread-Start');
      break;
     end;
 
   until eternity;
+  writeln('ACCECPT End');
 end;
 
 function THTTP2_Connection.byID(ID: Integer): THTTP2_Stream;
@@ -2027,7 +2032,8 @@ procedure THTTP2_Connection.Error;
 var
    I : Integer;
 begin
-  if Reader.SSL_ERROR.dequeue(I) then
+  writeln('Before dequeue');
+ if Reader.SSL_ERROR.dequeue(I) then
   begin
    Log('We have a Update of SSL_ERROR Code! New Value is '+SSL_ERROR_NAME[I]);
    case I of
@@ -2156,31 +2162,8 @@ begin
 
        Log(NetAddrToStr(ClientAddr.sin_addr));
 
-
        result := ConnectionSocket;
 
-           (*
-       // OPen via inetServer
-   {$ifdef linux}
-      client_socket := TUnixServer.Create('0.0.0.0:443');
-   {$else}
-      client_socket := TInetServer.Create('0.0.0.0', 443);
-   {$endif}
-
-      with client_socket do
-      begin
-        // Parameter?
-        SetNonBlocking;
-        KeepAlive := true;
-
-        // Bind to Interface
-        StartAccepting;
-
-        // Make no further actions, let SSL take over
-        Result := Socket;
-
-      end;
-      *)
     end;
   end;
 end;
