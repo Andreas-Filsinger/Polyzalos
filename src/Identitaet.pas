@@ -1,36 +1,36 @@
 ﻿{
-  |
-  |  Polyzalos, FKA OrgaMon
-  |  https://wiki.orgamon.org/
-  |  SPDX-License-Identifier: MIT
-  |
-  |               ____       _                _
-  |              |  _ \ ___ | |_   _ ______ _| | ___  ___
-  |              | |_) / _ \| | | | |_  / _` | |/ _ \/ __|
-  |              |  __/ (_) | | |_| |/ / (_| | | (_) \__ \
-  |              |_|   \___/|_|\__, /___\__,_|_|\___/|___/
-  |                            |___/
-  |
-  |  Copyright (C) 2016 - 2026  Andreas Filsinger
-  |
-  |  Permission is hereby granted, free of charge, to any person obtaining a copy
-  |  of this software and associated documentation files (the "Software"), to deal
-  |  in the Software without restriction, including without limitation the rights
-  |  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  |  copies of the Software, and to permit persons to whom the Software is
-  |  furnished to do so, subject to the following conditions:
-  |
-  |  The above copyright notice and this permission notice shall be included in all
-  |  copies or substantial portions of the Software.
-  |
-  |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  |  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  |  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  |  SOFTWARE.
-  |
+|
+|  Polyzalos, FKA OrgaMon
+|  https://wiki.orgamon.org/
+|  SPDX-License-Identifier: MIT
+|
+|               ____       _                _
+|              |  _ \ ___ | |_   _ ______ _| | ___  ___
+|              | |_) / _ \| | | | |_  / _` | |/ _ \/ __|
+|              |  __/ (_) | | |_| |/ / (_| | | (_) \__ \
+|              |_|   \___/|_|\__, /___\__,_|_|\___/|___/
+|                            |___/
+|
+|  Copyright (C) 2016 - 2026  Andreas Filsinger
+|
+|  Permission is hereby granted, free of charge, to any person obtaining a copy
+|  of this software and associated documentation files (the "Software"), to deal
+|  in the Software without restriction, including without limitation the rights
+|  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+|  copies of the Software, and to permit persons to whom the Software is
+|  furnished to do so, subject to the following conditions:
+|
+|  The above copyright notice and this permission notice shall be included in all
+|  copies or substantial portions of the Software.
+|
+|  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+|  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+|  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+|  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+|  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+|  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+|  SOFTWARE.
+|
 }
 unit Identitaet;
 
@@ -1246,10 +1246,12 @@ var
   ID : Integer;
   l : integer;
 begin
+ (*
  writeln('{ ----------');
  for l := 0 to pred(R.count) do
   writeln(R[l]);
  writeln('---------- }');
+ *)
 
  RequestedResourceName := R.Values[':path'];
  ID := StrToIntDef(R.Values[CONTEXT_HEADER_STREAM_ID],0);
@@ -1259,21 +1261,47 @@ begin
  if (RequestedResourceName='/') then
   RequestedResourceName := 'index.html';
 
- // deliver a file
-   with HEADERS_OUT do
-   begin
-    clear;
-    add(':status=200');
-    add('date='+Date);
-    add('server='+Server);
-    add('content-type='+ContentTypeOf(RequestedResourceName));
-     // Cross-Origin-Opener-Policy: same-origin
-    // Cross-Origin-Embedder-Policy: require-corp
-    encode;
-   end;
-   store(r_Header(ID));
-   storeFile(RequestedResourceName,ID);
-   write;
+ repeat
+
+  //
+  if (RequestedResourceName='/log') then
+  begin
+    LOG_STREAM_ID := ID;
+    with HEADERS_OUT do
+    begin
+      clear;
+      add(':status=200');
+//      add('date='+Date);
+//      add('server='+Server);
+      add('content-type=text/event-stream');
+      add('cache-control=no-cache');
+      add('connection=keep-alive');
+      encode;
+    end;
+    store(r_Header(ID));
+    storeString('data: Polycalus',ID);
+    write;
+
+    break;
+  end;
+
+  // deliver a file
+  with HEADERS_OUT do
+  begin
+   clear;
+   add(':status=200');
+   add('date='+Date);
+   add('server='+Server);
+   add('content-type='+ContentTypeOf(RequestedResourceName));
+   // Cross-Origin-Opener-Policy: same-origin
+   // Cross-Origin-Embedder-Policy: require-corp
+   encode;
+  end;
+  store(r_Header(ID));
+  storeFile(RequestedResourceName,ID);
+  write;
+
+ until yet;
 
  R.Free;
 end;
@@ -1291,7 +1319,7 @@ var
  s: TStringList;
  n: integer;
  FD: longint;
- T: LongWord;
+ T,L: LongWord;
 begin
  // Prepare
  s := e_r_BasePlug;
@@ -1299,35 +1327,39 @@ begin
   writeln(s[n]);
  s.free;
  systemd.Ready;
- T := frequently;
  writeln(cryptossl.Version);
-
- (*
- repeat
-   sleep(10000);
- until Eternity;
- *)
-
+ T := frequently;
+ L := frequently;
  HTTPS := THTTPS.create;
  with HTTPS do
  begin
    OnRequest := @Request;
    OnError := @Error;
-   //ShowDebugmessages;
    CTX := StrictHTTP2Context;
    Path := '/mnt/r/srv/hosts/';
    FD := getSocket;
    Accept(FD);
-   while true do
-   begin
+   repeat
     CheckSynchronize;
     if frequently(T,10000) then
     begin
      systemd.Wuff;
      system.write('.');
     end;
-    sleep(10);
-   end;
+    if (LOG_STREAM_ID>0) then
+      if frequently(L,3000) then
+      begin
+        StoreString('data: Menno '+IntToStr(random(100))+' !',LOG_STREAM_ID);
+        write;
+      end;
+    if ConnectionDropped then
+    begin
+      if not(GoAway) then
+       writeln('ungraceful termination without GOAWAY');
+      break;
+    end;
+    sleep(22);
+   until Eternity;
  end;
 
 end;

@@ -1,12 +1,7 @@
 ﻿====================================
-* PROJEKT: OrgaMon
-* SOURCE DIR: ..\OrgaMon
+* PROJEKT: Polyzalos
+* SOURCE DIR: ..\Polyzalos
 * PUBLIC: YES
-* INNO SETUP SCRIPT: OrgaMon.iss
-* INNO SETUP UPDATE: YES
-* INNO SETUP WITHOUT POINT: YES
-* SIZE: cOrgaMon.exe~9.976.832 Bytes
-* SIZE: OrgaMon.exe~18.202.112 Bytes
 * INFO: Open-Source Unternehmenssoftware (CRM,ERP,HR)
 ====================================
 
@@ -20,7 +15,11 @@ Dokumentation
 
 @<a href="https://wiki.orgamon.org/"><font color="blue">Weblink: Onlinedokumentation "OrgaMon"</font></a href>
 
-Rev 9.003 (12.02.2026-) Andreas Filsinger
+Rev 9.004 (??.03.2026) Andreas Filsinger
+
+ Neu: send "/log" Information to Browser
+
+Rev 9.003 (12.02.2026-02.03.2026) Andreas Filsinger
 
  Neu: Compilierung unter Linux
 

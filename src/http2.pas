@@ -8,7 +8,7 @@
 |
 |    HTTP/2 (as described in RFC 9113)
 |
-|    (c) 2017 - 2023  Andreas Filsinger
+|    (c) 2017 - 2026  Andreas Filsinger
 |
 |    Permission is hereby granted, free of charge, to any person obtaining a copy
 |    of this software and associated documentation files (the "Software"), to deal
@@ -201,6 +201,7 @@ Type
        ConnectionDropped: boolean;
        ConnectionLastNoise: LongWord;
        Goaway : boolean;
+       LOG_STREAM_ID : Integer;
 
        constructor Create;
        destructor Destroy; override;
@@ -224,14 +225,15 @@ Type
        function r_SETTINGS_ACK : RawByteString;
        function r_SETTINGS : RawByteString;
        function r_WINDOW_UPDATE (ID:integer=0; Size_Increment: Integer=$7fffff) : RawByteString;
-       function r_HEADER(ID:Integer) : RawByteString;
-       function r_DATA(ID:Integer; Content: RawByteString) : RawByteString;
-       function r_GOAWAY : RawByteString;
+       function r_HEADER(ID: Integer) : RawByteString;
+       function r_DATA(ID: Integer; Content: RawByteString) : RawByteString;
+       function r_GOAWAY: RawByteString;
 
        // send Data
        procedure store(buf: Pointer; num: int64); overload;
        procedure store(const R: RawByteString); overload;
        procedure storeFile(FName:string; ID:Integer);
+       procedure storeString(S: RawByteString; ID:Integer);
        procedure write;
 
        // Data-Tools
@@ -433,9 +435,9 @@ const
    {} '<html lang=en>' + CRLF +
    {} ' <head>' + CRLF +
    {} '  <meta charset=utf-8>' + CRLF +
-   {} '  <title>OrgaMon</title>' + CRLF +
+   {} '  <title>Polyzalos</title>' + CRLF +
    {} ' </head>' + CRLF +
-   {} ' <body>OrgaMon-HTTP2 works!</body>' + CRLF +
+   {} ' <body>This is HTTP2-Polyzalos!</body>' + CRLF +
    {} '</html>' + CRLF +
    {} CRLF +
    {} CRLF;
@@ -489,14 +491,14 @@ const
 
  // RFC: 6.5.2.  Defined Settings
 
- //   Server+Client Settings
+ // Server+Client Settings
  SETTINGS_TYPE_HEADER_TABLE_SIZE = $01; // 0..? default 4096
  SETTINGS_TYPE_MAX_CONCURRENT_STREAMS = $03; // 0,101..? suggested > 100
  SETTINGS_TYPE_INITIAL_WINDOW_SIZE = $04; // 0..? default 65,535
  SETTINGS_TYPE_MAX_FRAME_SIZE = $05; // 16,384..16777215
  SETTINGS_TYPE_MAX_HEADER_LIST_SIZE = $06; // 0..? default 16,777,215
 
- //   Client only Settings
+ // Client only Settings
  SETTINGS_TYPE_ENABLE_PUSH = $02; // 0,1 default 1 (=ON)
 
  //
@@ -1155,8 +1157,14 @@ begin
              Log(' Error_Code=' + ERROR_CODES[Cardinal(Error_Code)]);
             end;
 
-
+            if (Cardinal(Stream_ID)=LOG_STREAM_ID) then
+            begin
+              writeln('Lost a Server-sent events Stream');
+              LOG_STREAM_ID := 0;
             end;
+
+
+          end;
           FRAME_TYPE_SETTINGS : begin
 
               if (Flags and FLAG_ACK>0) then
@@ -1256,7 +1264,8 @@ begin
 
           end;
           FRAME_TYPE_GOAWAY : begin
-                           DoLog := true;
+
+            DoLog := true;
             if (Cardinal(Stream_ID)<>0) then
              begin
                Log('ERROR: invalid StreamID<>0');
@@ -1288,7 +1297,7 @@ begin
                Log(' More_Info=' + IntToHex(Cardinal(Len),4)+' Byte(s)');
              end;
              GoAway := true;
-                                         DoLog := false;
+             DoLog := false;
             end;
           FRAME_TYPE_WINDOW_UPDATE : begin
 
@@ -1417,27 +1426,19 @@ var
  D : RawByteString;
  ERROR: integer;
 begin
- writeln('Execute');
    if assigned(FSSL_ERROR) then
    begin
-     writeln('1423');
      // Just inform about the start of the task
      SSL_ERROR.enqueue(SSL_ERROR_NONE);
-     writeln('1426');
      Synchronize(FSSL_ERROR);
-     writeln('1428');
    end;
 
    while not Terminated do
    begin
-    writeln('Before Read');
     SSL_Read_Result := SSL_read_ex(FSSL, @buf, sizeof(buf), BytesRead);
-    writeln('After Read');
-
     if (SSL_Read_Result=SSL_RETURN_ERROR) then
     begin
       inc(ErrorCount);
-
       doLog := true;
       ERROR := SSL_get_error(FSSL, SSL_Read_Result);
       Log(SSL_ERROR_NAME[ERROR]);
@@ -1450,11 +1451,6 @@ begin
       case ERROR of
         SSL_ERROR_SYSCALL:begin
                            // Connection ended bad
-                           {$ifdef WINDOWS}
-                           WIN_RESULT := GetLastError;
-                           if (WIN_RESULT=WSAECONNABORTED) then
-                            SSL_ERROR.enqueue(SSL_ERROR_SYSCALL);
-                           {$endif}
                            if assigned(FSSL_ERROR) then
                             Synchronize(FSSL_ERROR);
                            Terminate;
@@ -1466,13 +1462,8 @@ begin
                                Terminate;
                               end;
        end;
-
-
     end else
     begin
-     writeln('Terminated');
-
-
      if assigned(FNoise) then
      begin
        SetLength(D, BytesRead);
@@ -1489,7 +1480,6 @@ begin
        // publish the news!
        Synchronize(FNoise);
      end;
-
    end;
   end;
 end;
@@ -1608,6 +1598,7 @@ begin
   // Streams
   Streams:= TList.create;
   REMOTE_STREAM_ID := 0;
+  LOG_STREAM_ID := 0;
 
   // Outgoing Buffers
   Storage := GetMem(SizeOf_Storage);
@@ -1847,14 +1838,14 @@ begin
   dec(BytesToSend, Written);
   inc(TotalBytesWritten, Written);
   inc(buf, Written);
- until false;
+ until yet;
  Storage_Load := 0;
 end;
 
 procedure THTTP2_Connection.storeFile(FName: string; ID: Integer);
 var
  fd : THandle;
- size, FragmentLen : Int64;
+ Size, FragmentLen : Int64;
  buffer, p: pointer;
  FRAME: THTTP2_FRAME;
  STREAM: THTTP2_Stream;
@@ -1879,11 +1870,11 @@ begin
  else
    ResourceFName := Path + cs_Servername + DirectorySeparator + FName;
 
- size := FSize(ResourceFName);
- if (size>0) then
+ Size := FSize(ResourceFName);
+ if (Size>0) then
  begin
 
-   if (window_size<size) or (STREAM.window_size<size) then
+   if (window_size<Size) or (STREAM.window_size<Size) then
     Log('can not send, waiting for a WINDOW_UPDATE Frame!');
 
    // imp pend A: der remote kann (oder will) die Daten nicht empfangen da sein
@@ -1913,14 +1904,14 @@ begin
    // dec(0.window_size,size);
    // dec(ID.window_size,size);
    //
-   dec(window_size, size);
-   dec(STREAM.window_size,size);
+   dec(window_size, Size);
+   dec(STREAM.window_size, Size);
 
    // load complete File to buffer
-   buffer := GetMem(size);
+   buffer := GetMem(Size);
    p := buffer;
    fd := FileOpen(ResourceFName, fmOpenRead);
-   FileRead(fd, buffer^, size);
+   FileRead(fd, buffer^, Size);
    FileClose(fd);
 
    FragmentLen := SETTINGS_REMOTE.MAX_FRAME_SIZE;
@@ -1946,7 +1937,7 @@ begin
 
        with FRAME do
        begin
-         Len := size;
+         Len := Size;
          Flags := FLAG_END_STREAM;
        end;
 
@@ -1964,6 +1955,44 @@ begin
  begin
    // 404
  end;
+end;
+
+procedure THTTP2_Connection.storeString(S: RawByteString; ID: Integer);
+var
+  FRAME: THTTP2_FRAME;
+  STREAM: THTTP2_Stream;
+begin
+ //
+ STREAM := byID(ID);
+ if not(assigned(STREAM)) then
+ begin
+  // Autocreate the STREAM
+  // imp pend: The Request-Header should create the stream
+  STREAM := THTTP2_Stream.Create(ID);
+  STREAM.window_size := SETTINGS_REMOTE.INITIAL_WINDOW_SIZE;
+  Streams.add(STREAM);
+ end;
+
+ DoLog := true;
+ LogRW(false);
+ Log('FRAME_DATA');
+ DoLog := false;
+
+ with FRAME do
+ begin
+   Typ := FRAME_TYPE_DATA;
+   Stream_ID := ID;
+   Len := length(S)+2;
+   Flags := FLAG_CONTINUE;
+ end;
+
+ store(@FRAME,SizeOf_FRAME);
+ store(s+#$0A+#$0A);
+
+ // event:
+ // data:
+ // id:
+ // retry:
 end;
 
 procedure THTTP2_Connection.debug(D: RawByteString);
