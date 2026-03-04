@@ -268,7 +268,8 @@ function getSocket: cint;
 implementation
 
 uses
- BaseUnix, Unix, Sockets, FileUtil,
+ Unix, Sockets, FileUtil,
+
  fpchelper,
  systemd;
 
@@ -1989,10 +1990,10 @@ begin
  store(@FRAME,SizeOf_FRAME);
  store(s+#$0A+#$0A);
 
- // event:
- // data:
- // id:
- // retry:
+ // event: client can create multible call-backs based on event name, maybe "message" or "error" or "debug"
+ // data: the string-value
+ // id: this is for people want to say "on Id <id> you said this" does this makes any sense?
+ // retry: [ms] in case of connection Error, inform the client to wait <retry> ms before reconnect
 end;
 
 procedure THTTP2_Connection.debug(D: RawByteString);

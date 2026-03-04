@@ -15,9 +15,9 @@ Dokumentation
 
 @<a href="https://wiki.orgamon.org/"><font color="blue">Weblink: Onlinedokumentation "OrgaMon"</font></a href>
 
-Rev 9.004 (??.03.2026) Andreas Filsinger
+Rev 9.004 (04.03.2026) Andreas Filsinger
 
- Neu: send "/log" Information to Browser
+ Neu: Client:JS:EventSource('/log') is working (server-sent events)
 
 Rev 9.003 (12.02.2026-02.03.2026) Andreas Filsinger
 
