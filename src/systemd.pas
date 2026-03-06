@@ -20,9 +20,6 @@ unit systemd;
 
 {$mode objfpc}{$H+}
 
-// # linux: rudimentäres libsystemd API um "ordentliche" Services schreiben zu können
-// #        Aufruf externer Anwendungen
-
 interface
 
 uses

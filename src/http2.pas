@@ -192,6 +192,18 @@ Type
      Storage_Load: int64;
      window_size: Integer;  // cability of the remote
 
+     // Server-sent events (some say there is a maximum of 6 per client)
+     //  URL: string (stored url wich initiated the connection)
+     //  STREAM_ID: h2 Protocol stream id of connection
+     //  ID: actual message number
+     //  uptime: time the stream is alive
+     //
+     //  Backup: saved messages for "replay" after connection loss
+     //
+     SSE : TList;
+
+     // LOG_STREAM_ID : Integer;
+
      public
 
        // working directory
@@ -201,7 +213,6 @@ Type
        ConnectionDropped: boolean;
        ConnectionLastNoise: LongWord;
        Goaway : boolean;
-       LOG_STREAM_ID : Integer;
 
        constructor Create;
        destructor Destroy; override;
@@ -235,6 +246,9 @@ Type
        procedure storeFile(FName:string; ID:Integer);
        procedure storeString(S: RawByteString; ID:Integer);
        procedure write;
+
+       // send Events
+       procedure sendEvent(sctx: TStream; Event: UTF8String; Data: TStringList);
 
        // Data-Tools
        procedure debug(D: RawByteString);
@@ -698,7 +712,7 @@ var
      Value      := pValue;
      result := AsString;
    end;
-   FRAME.Len := cardinal(FRAME.Len) + sizeof(TFRAME_SETTINGS);
+   FRAME.Len := Cardinal(FRAME.Len) + sizeof(TFRAME_SETTINGS);
  end;
 
  var
@@ -1115,15 +1129,15 @@ begin
              DoLog := true;
               Log(
                {} ' Stream '+
-               {} INtTOstr(cardinal(Stream_ID)) + '.' +
-               {} inttostr(cardinal(Stream_Dependency))+' Weight='+
+               {} INtTOstr(Cardinal(Stream_ID)) + '.' +
+               {} inttostr(Cardinal(Stream_Dependency))+' Weight='+
                {} IntToStr(Weight));
               DoLog := false;
 
               // find stream
               StreamFound := false;
               for n := 0 to pred(Streams.Count) do
-                if (cardinal(Stream_ID)=cardinal(THTTP2_Stream(Streams[n]).ID)) then
+                if (Cardinal(Stream_ID)=Cardinal(THTTP2_Stream(Streams[n]).ID)) then
                 begin
                   StreamFound := true;
                   break;
@@ -1135,8 +1149,8 @@ begin
                 S := THTTP2_Stream.Create;
                 with S do
                 begin
-                 ID := cardinal(Stream_ID);
-                 dependency:= cardinal(Stream_Dependency);
+                 ID := Cardinal(Stream_ID);
+                 dependency:= Cardinal(Stream_Dependency);
                  weight := Weight;
                 end;
                 Streams.add(S);
@@ -1172,7 +1186,7 @@ begin
               begin
 
                 Log('***SETTINGS ACK***');
-                if (cardinal(Len)>0) then
+                if (Cardinal(Len)>0) then
                 begin
                   Log(' ERROR "SETTINGS ACK" can not have Payload');
                   FatalError := true;
@@ -1182,16 +1196,16 @@ begin
               end else
               begin
 
-                for n := 1 to (cardinal(Len) DIV SizeOf_SETTINGS) do
+                for n := 1 to (Cardinal(Len) DIV SizeOf_SETTINGS) do
                 begin
                   with PFRAME_SETTINGS(@ClientNoise[CN_Pos2])^ do
                   begin
                     DoLog := true;
-                    Log(' '+SETTINGS_NAMES[cardinal(SETTING_ID)]+' '+IntToStr(Cardinal(Value)));
+                    Log(' '+SETTINGS_NAMES[Cardinal(SETTING_ID)]+' '+IntToStr(Cardinal(Value)));
                     DoLog := false;
 
                     with SETTINGS_REMOTE do
-                      case cardinal(SETTING_ID) of
+                      case Cardinal(SETTING_ID) of
                          SETTINGS_TYPE_HEADER_TABLE_SIZE:begin
                           HEADER_TABLE_SIZE := Cardinal(Value);
 
@@ -1328,7 +1342,7 @@ begin
                break;
              end;
 
-             ID := cardinal(Stream_ID);
+             ID := Cardinal(Stream_ID);
              WINDOW_SIZE_INCREMENT := Cardinal(PFRAME_WINDOW_UPDATE(@ClientNoise[CN_Pos2])^.Window_Size_Increment);
 
             // RFC 6.9: Range 1..
@@ -1367,7 +1381,7 @@ begin
               end;
             end else
             begin
-              Log('Noise on Stream '+IntToStr(cardinal(Stream_ID))+' is ignored');
+              Log('Noise on Stream '+IntToStr(Cardinal(Stream_ID))+' is ignored');
             end;
 
             DoLog := true;
@@ -1787,7 +1801,7 @@ var
 begin
  result := nil;
  for n := 0 to pred(Streams.Count) do
-   if (cardinal(ID)=cardinal(THTTP2_Stream(Streams[n]).ID)) then
+   if (Cardinal(ID)=Cardinal(THTTP2_Stream(Streams[n]).ID)) then
    begin
      result := THTTP2_Stream(Streams[n]);
      break;
@@ -1901,9 +1915,6 @@ begin
 
    //
    // RFC: After sending a flow-controlled frame, the sender reduces the space available in both windows by the length of the transmitted frame.
-   // imp pend:
-   // dec(0.window_size,size);
-   // dec(ID.window_size,size);
    //
    dec(window_size, Size);
    dec(STREAM.window_size, Size);
@@ -1990,10 +2001,25 @@ begin
  store(@FRAME,SizeOf_FRAME);
  store(s+#$0A+#$0A);
 
- // event: client can create multible call-backs based on event name, maybe "message" or "error" or "debug"
- // data: the string-value
- // id: this is for people want to say "on Id <id> you said this" does this makes any sense?
- // retry: [ms] in case of connection Error, inform the client to wait <retry> ms before reconnect
+
+ (*
+
+  Server-sent events (SSE), Format of raw Message-Blocks send to client (No need for a Header at 2nd Message)
+
+  : End each line with a #$0A
+  :
+  : on a fresh connect or any time you may send
+  ['retry:'[ms] in case of connection Error, inform the client
+         to wait <retry> ms before reconnect. Send this on first connect]
+  :
+  ['event:'client can create multible call-backs based on event name, maybe "message" or "error" or "debug"]
+  {'data:'the string-value}
+  ['id:'give a autoincrement number to each message,
+      if connection breaks, client will inform about
+      her last good id=Last-Event-ID server should send id+1 ..
+  # End each message-block with an empty line
+  #$0A
+ *)
 end;
 
 procedure THTTP2_Connection.debug(D: RawByteString);
@@ -2168,9 +2194,6 @@ begin
        if fpsetsockopt(ListenSocket, IPPROTO_TCP, TCP_NODELAY, @flag, sizeof(LongInt))<0 then
         raise Exception.Create('Server: Socket: can not set TCP_NODELAY ');
 
-//       FpFcntl(ListenSocket, F_SetFl, FpFcntl(ListenSocket, F_GetFl) or O_NONBLOCK);
-
-
        // bind to interface
        len := sizeof(TInetSockAddr);
        fillChar(ServerAddr, len, 0);
@@ -2206,6 +2229,7 @@ end;
     close(sock);
     SSL_CTX_free(ctx);
     cleanup_openssl();
+ sd_notify(STOPPING=1 ... ?
    *)
 
 begin

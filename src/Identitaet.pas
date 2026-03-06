@@ -1271,15 +1271,13 @@ begin
     begin
       clear;
       add(':status=200');
-//      add('date='+Date);
-//      add('server='+Server);
       add('content-type=text/event-stream');
       add('cache-control=no-cache');
       add('connection=keep-alive');
       encode;
     end;
-    store(r_Header(ID));
-    storeString('data: Polycalus',ID);
+    store(r_Header(LOG_STREAM_ID));
+    storeString('data:Polyzalos Rev. ' + RevToStr(globals.version),LOG_STREAM_ID);
     write;
 
     break;
@@ -1349,7 +1347,7 @@ begin
     if (LOG_STREAM_ID>0) then
       if frequently(L,3000) then
       begin
-        StoreString('data: Menno '+IntToStr(random(100))+' !',LOG_STREAM_ID);
+        StoreString('data:Menno '+IntToStr(random(100))+' !',LOG_STREAM_ID);
         write;
       end;
     if ConnectionDropped then
