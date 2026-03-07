@@ -143,6 +143,29 @@ Type
    property OnSSL_ERROR : TThreadMethod read FSSL_ERROR write FSSL_ERROR;
  end;
 
+
+
+ { TSSE_Stream }
+
+ // Server-sent events (some say there is a maximum of 6 per client)
+ // this can reconnect
+ // this can replay lost ids
+
+ TSSE_Stream = class(THTTP2_Stream)
+
+   // URL: string (stored url wich initiated the connection)
+   url : string;
+
+   // to messure stability of a SSE Connection
+   uptick : QWord;
+
+   // actual message number
+   Event_ID : Integer;
+
+   //  Backup: saved messages for "replay" after connection loss
+   Backup: TStringList;
+ end;
+
  { THTTP2_Connection }
 
  TRequestMethod = procedure(Request : TStringList) of Object;
@@ -150,7 +173,7 @@ Type
 
  //
  // complete internal handling of a HTTP2 Connection. Wire-coding
- // encoding (HPACK) and Householding of Data Objects (Streams, Headers)
+ // encoding (HPACK) and Householding of Data Objects (Streams, Headers, Events)
  //
  THTTP2_Connection = class(TObject)
 
@@ -192,17 +215,8 @@ Type
      Storage_Load: int64;
      window_size: Integer;  // cability of the remote
 
-     // Server-sent events (some say there is a maximum of 6 per client)
-     //  URL: string (stored url wich initiated the connection)
-     //  STREAM_ID: h2 Protocol stream id of connection
-     //  ID: actual message number
-     //  uptime: time the stream is alive
-     //
-     //  Backup: saved messages for "replay" after connection loss
-     //
+     // Server-sent events (SSE)
      SSE : TList;
-
-     // LOG_STREAM_ID : Integer;
 
      public
 
@@ -222,7 +236,11 @@ Type
        procedure Accept(FD: cint);
 
        // Streams
-       function byID (ID:Integer): THTTP2_Stream;
+       function byID (ID: Integer): THTTP2_Stream;
+
+       // Server-sent events SSE
+       function AcceptSSE(url: String): TSSE_Stream;
+       procedure CloseSSE(stream: TSSE_Stream);
 
        // Parser
        procedure Parse;
@@ -240,15 +258,18 @@ Type
        function r_DATA(ID: Integer; Content: RawByteString) : RawByteString;
        function r_GOAWAY: RawByteString;
 
-       // send Data
+       // prepare data for client
        procedure store(buf: Pointer; num: int64); overload;
        procedure store(const R: RawByteString); overload;
        procedure storeFile(FName:string; ID:Integer);
        procedure storeString(S: RawByteString; ID:Integer);
+
+       // prepare events for client
+       procedure storeSSE(sctx: TStream; Data: TStringList; Event: UTF8String = '');
+
+       // send data to client
        procedure write;
 
-       // send Events
-       procedure sendEvent(sctx: TStream; Event: UTF8String; Data: TStringList);
 
        // Data-Tools
        procedure debug(D: RawByteString);
@@ -1172,12 +1193,14 @@ begin
              Log(' Error_Code=' + ERROR_CODES[Cardinal(Error_Code)]);
             end;
 
+            // imp pend:
+            (*
             if (Cardinal(Stream_ID)=LOG_STREAM_ID) then
             begin
               writeln('Lost a Server-sent events Stream');
               LOG_STREAM_ID := 0;
             end;
-
+            *)
 
           end;
           FRAME_TYPE_SETTINGS : begin
@@ -1611,9 +1634,8 @@ begin
   inherited Create;
 
   // Streams
-  Streams:= TList.create;
+  Streams := TList.create;
   REMOTE_STREAM_ID := 0;
-  LOG_STREAM_ID := 0;
 
   // Outgoing Buffers
   Storage := GetMem(SizeOf_Storage);
@@ -1806,6 +1828,16 @@ begin
      result := THTTP2_Stream(Streams[n]);
      break;
    end;
+end;
+
+function THTTP2_Connection.AcceptSSE(url: String): TSSE_Stream;
+begin
+
+end;
+
+procedure THTTP2_Connection.CloseSSE(stream: TSSE_Stream);
+begin
+
 end;
 
 procedure THTTP2_Connection.write;
@@ -2020,6 +2052,12 @@ begin
   # End each message-block with an empty line
   #$0A
  *)
+end;
+
+procedure THTTP2_Connection.storeSSE(sctx: TStream; Data: TStringList;
+  Event: UTF8String);
+begin
+
 end;
 
 procedure THTTP2_Connection.debug(D: RawByteString);

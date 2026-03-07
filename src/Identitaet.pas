@@ -1243,17 +1243,13 @@ procedure THTTPS.Request(R: TStringList);
 var
   C : RawByteString;
   RequestedResourceName : string;
+  AcceptContent : string;
   ID : Integer;
   l : integer;
 begin
- (*
- writeln('{ ----------');
- for l := 0 to pred(R.count) do
-  writeln(R[l]);
- writeln('---------- }');
- *)
 
  RequestedResourceName := R.Values[':path'];
+ AcceptContent := R.Values['accept'];
  ID := StrToIntDef(R.Values[CONTEXT_HEADER_STREAM_ID],0);
 
  writeln('Answering to '+RequestedResourceName+'@'+IntTOStr(ID)+ '...');
@@ -1264,23 +1260,35 @@ begin
  repeat
 
   //
-  if (RequestedResourceName='/log') then
+  if (AcceptContent='text/event-stream') then
   begin
-    LOG_STREAM_ID := ID;
-    with HEADERS_OUT do
+    if (RequestedResourceName='/log') then
     begin
-      clear;
-      add(':status=200');
-      add('content-type=text/event-stream');
-      add('cache-control=no-cache');
-      add('connection=keep-alive');
-      encode;
-    end;
-    store(r_Header(LOG_STREAM_ID));
-    storeString('data:Polyzalos Rev. ' + RevToStr(globals.version),LOG_STREAM_ID);
-    write;
 
-    break;
+     writeln('{ incoming Headers');
+     for l := 0 to pred(R.count) do
+      writeln('  ' + R[l]);
+     writeln('}');
+
+      //LOG_STREAM_ID := ID;
+      with HEADERS_OUT do
+      begin
+        clear;
+        add(':status=200');
+        add('content-type=text/event-stream');
+        add('cache-control=no-cache');
+        add('connection=keep-alive');
+        encode;
+      end;
+      store(r_Header(ID));
+      storeString('retry:4500', ID);
+      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      storeString('event:notice'+#$0A+'data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      write;
+
+      break;
+    end;
   end;
 
   // deliver a file
@@ -1344,12 +1352,14 @@ begin
      systemd.Wuff;
      system.write('.');
     end;
+    (*
     if (LOG_STREAM_ID>0) then
       if frequently(L,3000) then
       begin
         StoreString('data:Menno '+IntToStr(random(100))+' !',LOG_STREAM_ID);
         write;
       end;
+    *)
     if ConnectionDropped then
     begin
       if not(GoAway) then
