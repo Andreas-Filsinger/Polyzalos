@@ -143,11 +143,11 @@ type
     procedure Encode; // Header-Strings -> Wire
 
 
-    class function HexStrToRawByteString(s:String) : RawByteString;
-    class function HuffmanOptionToString(H:Boolean) : string;
-    class function HexStrToBinaryDebug(r:RawByteString) : TStringList;
-    class function RawByteStringToHuffman(R:RawByteString) : RawByteString;
-    class function RawByteStringToHexStr(R:RawByteString) : String;
+    class function HexStrToRawByteString(s: String) : RawByteString;
+    class function HuffmanOptionToString(H: Boolean) : string;
+    class function HexStrToBinaryDebug(r: RawByteString) : TStringList;
+    class function RawByteStringToHuffman(R: RawByteString) : RawByteString;
+    class function RawByteStringToHexStr(R: RawByteString) : String;
     //
     class function Date : string;
     class function Server : string;

@@ -39,7 +39,13 @@ unit HTTP2;
 interface
 
 uses
-  cTypes, Classes, SysUtils, Math, unicodedata,
+  cTypes, Classes, SysUtils, unicodedata,
+
+  // imp pend: use utf8 Strings for SSE
+  { LazUTF8, }
+
+  // imp pend: use generics (TList<TStream>) for better readability
+  { fgl, }
 
   // Tools
   anfix,
@@ -67,9 +73,11 @@ Type
        window_size: Integer;    { 65,535 by default }
        SETTINGS_MAX_FRAME_SIZE : UInt24;  { 16384..16777215 }
 
+       class function indexByID(Streams: TList; stream_id: Integer) : THTTP2_Stream;
+
        constructor create; overload;
-       constructor create(stream_id:Integer); overload;
-       class function StateToString(s:TStreamStates):string;
+       constructor create(stream_id: Integer); overload;
+       class function StateToString(s: TStreamStates):string;
   end;
 
  { THTTP2_Settings }
@@ -151,7 +159,10 @@ Type
  // this can reconnect
  // this can replay lost ids
 
- TSSE_Stream = class(THTTP2_Stream)
+ TSSE_Stream = class(TObject)
+
+   // Transport Stream
+   stream: THTTP2_Stream;
 
    // URL: string (stored url wich initiated the connection)
    url : string;
@@ -164,6 +175,11 @@ Type
 
    //  Backup: saved messages for "replay" after connection loss
    Backup: TStringList;
+
+   public
+
+   constructor Create;
+
  end;
 
  { THTTP2_Connection }
@@ -192,7 +208,7 @@ Type
      SETTINGS : THTTP2_Settings;
 
      // Streams
-     Streams: TList;
+     Streams: TList; // THTTP2_Stream, TSSE_Stream
      LOCAL_STREAM_ID: Integer; // even, initiated by me
      REMOTE_STREAM_ID: Integer; // odd, initiated by remote
 
@@ -216,7 +232,7 @@ Type
      window_size: Integer;  // cability of the remote
 
      // Server-sent events (SSE)
-     SSE : TList;
+     SSE_urls : TStringList;
 
      public
 
@@ -239,8 +255,8 @@ Type
        function byID (ID: Integer): THTTP2_Stream;
 
        // Server-sent events SSE
-       function AcceptSSE(url: String): TSSE_Stream;
-       procedure CloseSSE(stream: TSSE_Stream);
+       function Register_SSE(url: String): TSSE_Stream;
+       procedure Close_SSE(S: TSSE_Stream);
 
        // Parser
        procedure Parse;
@@ -265,7 +281,9 @@ Type
        procedure storeString(S: RawByteString; ID:Integer);
 
        // prepare events for client
-       procedure storeSSE(sctx: TStream; Data: TStringList; Event: UTF8String = '');
+       procedure storeSSE(sctx: TStream; Data: TStringList; Event: UTF8String = ''); overload;
+       procedure storeSSE(sctx: TStream; Data: String; Event: UTF8String = ''); overload;
+
 
        // send data to client
        procedure write;
@@ -284,7 +302,7 @@ Type
        procedure loadERROR(Err : cint);
 
        // Call-Back if there is a request from Client
-       property OnRequest : TrequestMethod read FRequest write FRequest;
+       property OnRequest : TRequestMethod read FRequest write FRequest;
        property OnError:  TErrorMethod read FError write FError;
 
        class function NULL_PAGE : RawByteString;
@@ -303,10 +321,9 @@ function getSocket: cint;
 implementation
 
 uses
- Unix, Sockets, FileUtil,
+ Unix, Sockets, FileUtil, Math,
 
- fpchelper,
- systemd;
+ fpchelper, systemd;
 
 type
 
@@ -656,6 +673,19 @@ end;
 
 { THTTP2_Stream }
 
+class function THTTP2_Stream.indexByID(Streams: TList; stream_id: Integer): THTTP2_Stream;
+var
+ i : Integer;
+begin
+ result := nil;
+ for i := 0 to pred(Streams.count) do
+  if (THTTP2_Stream(Streams[i]).ID = stream_id) then
+  begin
+     result := THTTP2_Stream(Streams[i]);
+     break;
+  end;
+end;
+
 constructor THTTP2_Stream.create;
 begin
   inherited create;
@@ -954,7 +984,7 @@ procedure THTTP2_Connection.Parse;
 var
   ID, CN_Pos2: Integer;
   WINDOW_SIZE_INCREMENT: Integer;
-  n,m : Integer;
+  n, m  : Integer;
   ContentSize: Integer;
   H, D : RawByteString;
 
@@ -964,6 +994,10 @@ var
 
   // Request
   R : TStringList;
+
+  // SSE
+  i : Integer;
+  SSEs : TSSE_Stream;
 
 begin
  ParserSave;
@@ -1077,13 +1111,12 @@ begin
             begin
                with PFRAME_HEADERS_PADDING(@ClientNoise[CN_Pos2])^ do
                begin
-                Log(' Pad Length ' + IntTOStr(Pad_Length));
+                Log(' Pad Length ' + IntToStr(Pad_Length));
                 dec(ContentSize,Pad_Length);
                end;
-               inc(CN_Pos2,sizeof(TFRAME_HEADERS_PADDING));
-               dec(ContentSize,sizeof(TFRAME_HEADERS_PADDING));
+               inc(CN_Pos2, sizeof(TFRAME_HEADERS_PADDING));
+               dec(ContentSize, sizeof(TFRAME_HEADERS_PADDING));
             end;
-
 
             if (Flags and FLAG_PRIORITY=FLAG_PRIORITY) then
             begin
@@ -1124,12 +1157,43 @@ begin
              Decode;
             end;
 
+
             R := TStringList.create;
             R.AddStrings(HEADERS_IN);
             R.add(CONTEXT_HEADER_STREAM_ID+'='+IntToStr(Cardinal(Stream_ID)));
-
             for n := 0 to pred(R.count) do
-              Log(R[n]);
+             Log(R[n]);
+
+
+            // handle already registered SSEs-Connects internaly
+            if (HEADERS_IN.Values['accept']='text/event-stream') then
+            begin
+              i := SSE_urls.indexof(HEADERS_IN.Values[':path']);
+              // Is this already known?
+              if (i<>-1) then
+              begin
+                if assigned(SSE_urls.Objects[i]) then
+                begin
+                  // reconnect
+                 SSEs := TSSE_Stream(SSE_urls.Objects[i]);
+                end else
+                begin
+                  // fresh connect
+                  SSEs := TSSE_Stream.create;
+                  with SSEs do
+                  begin
+                    stream := THTTP2_Stream.indexByID(Streams,Integer(Stream_ID));
+                    if (stream=nil) then
+                    begin
+                     Log('ERROR: Stream ' + IntToStr(Integer(Stream_ID))+ ' is unknown');
+                     FatalError := true;
+                     break;
+                    end;
+                  end;
+                  SSE_urls.Objects[i] := SSEs;
+                end;
+              end;
+            end;
 
             if assigned(FRequest) then
              FRequest(R);
@@ -1150,8 +1214,8 @@ begin
              DoLog := true;
               Log(
                {} ' Stream '+
-               {} INtTOstr(Cardinal(Stream_ID)) + '.' +
-               {} inttostr(Cardinal(Stream_Dependency))+' Weight='+
+               {} IntToStr(Cardinal(Stream_ID)) + '.' +
+               {} IntToStr(Cardinal(Stream_Dependency))+' Weight='+
                {} IntToStr(Weight));
               DoLog := false;
 
@@ -1531,6 +1595,14 @@ begin
  NOISE :=  TNoiseQ.Create(1024);
 end;
 
+{ TSSE_Stream }
+
+constructor TSSE_Stream.Create;
+begin
+  Stream := nil;
+  Backup := TStringList.Create;
+end;
+
 type
   TCardinalRec = packed record
   {$ifdef FPC_LITTLE_ENDIAN}
@@ -1659,6 +1731,9 @@ begin
 
   // CTX
   CTX := StrictHTTP2Context;
+
+  // SSE
+  SSE_urls := TStringList.create;
 
 end;
 
@@ -1830,12 +1905,23 @@ begin
    end;
 end;
 
-function THTTP2_Connection.AcceptSSE(url: String): TSSE_Stream;
+function THTTP2_Connection.Register_SSE(url: String): TSSE_Stream;
+var
+  i : Integer;
 begin
-
+  i := SSE_urls.indexof(url);
+  if (i=-1) then
+  begin
+    result := TSSE_Stream.Create;
+    SSE_urls.AddObject(url, result);
+  end
+  else
+  begin
+    result := SSE_urls.Objects[i] as TSSE_Stream;
+  end;
 end;
 
-procedure THTTP2_Connection.CloseSSE(stream: TSSE_Stream);
+procedure THTTP2_Connection.Close_SSE(S: TSSE_Stream);
 begin
 
 end;
@@ -2060,6 +2146,12 @@ begin
 
 end;
 
+procedure THTTP2_Connection.storeSSE(sctx: TStream; Data: String;
+  Event: UTF8String);
+begin
+
+end;
+
 procedure THTTP2_Connection.debug(D: RawByteString);
 var
   DD : string;
@@ -2238,7 +2330,7 @@ begin
        with ServerAddr do
        begin
          sin_family:=AF_INET;
-         sin_port:= htons(443);
+         sin_port:= htons(1443);
          sin_addr.s_addr:= htonl(INADDR_ANY);
        end;
 

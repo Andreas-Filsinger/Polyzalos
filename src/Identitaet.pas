@@ -1259,16 +1259,17 @@ begin
 
  repeat
 
+  writeln('{ incoming Headers');
+  for l := 0 to pred(R.count) do
+   writeln('  ' + R[l]);
+  writeln('}');
+
   //
   if (AcceptContent='text/event-stream') then
   begin
     if (RequestedResourceName='/log') then
     begin
 
-     writeln('{ incoming Headers');
-     for l := 0 to pred(R.count) do
-      writeln('  ' + R[l]);
-     writeln('}');
 
       //LOG_STREAM_ID := ID;
       with HEADERS_OUT do
@@ -1339,8 +1340,12 @@ begin
  HTTPS := THTTPS.create;
  with HTTPS do
  begin
+
    OnRequest := @Request;
    OnError := @Error;
+   Register_SSE('/log'); // Feedback-Log to Client
+   Register_SSE('/econnect'); // Conncetor to ecommerce Functions
+
    CTX := StrictHTTP2Context;
    Path := '/mnt/r/srv/hosts/';
    FD := getSocket;

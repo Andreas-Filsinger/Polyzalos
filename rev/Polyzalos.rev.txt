@@ -17,7 +17,7 @@ Dokumentation
 
 Rev 9.005 (work in progress) Andreas Filsinger
 
- Neu: integration of prepared listeners to Server-sent events SSE
+ Neu: Registrierung von erwünschten Server-sent events (SSE) Streams
 
 Rev 9.004 (04.03.2026) Andreas Filsinger
 
