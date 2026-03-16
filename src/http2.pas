@@ -173,8 +173,11 @@ Type
    // actual message number
    Event_ID : Integer;
 
-   //  Backup: saved messages for "replay" after connection loss
+   // saved messages for "replay" after connection loss
    Backup: TStringList;
+
+   // saved messages for later send out
+   Future: TStringList;
 
    public
 
@@ -254,7 +257,7 @@ Type
        // Streams
        function byID (ID: Integer): THTTP2_Stream;
 
-       // Server-sent events SSE
+       // Manage server-sent events SSE
        function Register_SSE(url: String): TSSE_Stream;
        procedure Close_SSE(S: TSSE_Stream);
 
@@ -281,8 +284,8 @@ Type
        procedure storeString(S: RawByteString; ID:Integer);
 
        // prepare events for client
-       procedure storeSSE(sctx: TStream; Data: TStringList; Event: UTF8String = ''); overload;
-       procedure storeSSE(sctx: TStream; Data: String; Event: UTF8String = ''); overload;
+       procedure storeSSE(SSES: TSSE_Stream; Data: TStringList; Event: UTF8String = ''); overload;
+       procedure storeSSE(SSES: TSSE_Stream; Data: String; Event: UTF8String = ''); overload;
 
 
        // send data to client
@@ -2124,6 +2127,8 @@ begin
 
   Server-sent events (SSE), Format of raw Message-Blocks send to client (No need for a Header at 2nd Message)
 
+  https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
+
   : End each line with a #$0A
   :
   : on a fresh connect or any time you may send
@@ -2140,14 +2145,107 @@ begin
  *)
 end;
 
-procedure THTTP2_Connection.storeSSE(sctx: TStream; Data: TStringList;
-  Event: UTF8String);
+procedure THTTP2_Connection.storeSSE(SSES: TSSE_Stream; Data: TStringList;
+  Event: UTF8String = '');
+var
+ body : TStringList;
+ i : Integer;
+
+ lAutomataState: Word;
+ NUMBER_OF_ITERATIONS, UPPER_BOUND: Integer;
 begin
+
+ if not(assigned(SSES)) then
+  exit;
+
+ if not(assigned(SSES.stream)) then
+ begin
+   // store things for later
+   with SSES do
+   begin
+    Future.add('event:' + Event);
+    Future.addstrings(Data);
+    exit;
+   end;
+ end;
+
+ with SSES do
+ begin
+  body := TStringList.Create;
+
+  // 1) do work left over
+  if (Future.Count>0) then
+  begin
+    lAutomataState := 0;
+    i := 0;
+    NUMBER_OF_ITERATIONS := 0;
+    UPPER_BOUND := Future.Count*2;
+    repeat
+      case lAutoMataState of
+        0:begin // expection 'event:'
+            if (pos('event:',Future[i]) <> 1) then
+            begin
+              // ERR: can not do left over work due Format Error in Datastructure 'future'
+              inc(i);
+              continue;
+            end;
+            body.add(Future[i]);
+            inc(i);
+          end;
+        1:begin // add 'data'
+           if (i=Future.Count) then
+           begin
+             lAutoMataState := 3;
+             continue;
+           end;
+           if (pos('event:',Future[i])=1) then
+           begin
+             lAutoMataState := 2;
+             continue;
+           end;
+           // add data Lines
+           body.add('data:'+Future[i]);
+           inc(i);
+          end;
+         2:begin // another message block is ready
+            inc(Event_ID);
+            body.add('id:'+IntToStr(Event_ID)+LineEnding);
+            lAutoMataState := 0;
+        end;
+         3:begin // last message block is ready
+            inc(Event_ID);
+            body.add('id:'+IntToStr(Event_ID)+LineEnding);
+            break;
+        end; end;
+      inc(NUMBER_OF_ITERATIONS);
+    until (NUMBER_OF_ITERATIONS<UPPER_BOUND); // nasa coding rules
+    Future.clear;
+  end;
+
+  // 2) do today's work
+  if (Event <> '') then
+    body.add ('event:'+Event);
+  for i := 0 to pred(Data.Count) do
+    body.add('data:'+Data[i]);
+
+  if (Body.Count>0) then
+  begin
+   inc(Event_ID);
+   BackUp.addObject(Body[0],TObject(PtrUInt(Event_ID)));
+   for i := 1 to pred(Body.Count) do
+    Backup.add(Body[i]);
+  end;
+
+  // last line
+  body.add('id:'+IntToStr(Event_ID)+LineEnding);
+
+
+ end;
 
 end;
 
-procedure THTTP2_Connection.storeSSE(sctx: TStream; Data: String;
-  Event: UTF8String);
+procedure THTTP2_Connection.storeSSE(SSES: TSSE_Stream; Data: String;
+  Event: UTF8String = '');
 begin
 
 end;

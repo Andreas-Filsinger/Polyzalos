@@ -1327,6 +1327,8 @@ var
  n: integer;
  FD: longint;
  T,L: LongWord;
+ LogStream : TSSE_Stream;
+ ApiStream : TSSE_Stream;
 begin
  // Prepare
  s := e_r_BasePlug;
@@ -1336,15 +1338,18 @@ begin
  systemd.Ready;
  writeln(cryptossl.Version);
  T := frequently;
- L := frequently;
+ L := T;
  HTTPS := THTTPS.create;
  with HTTPS do
  begin
 
    OnRequest := @Request;
    OnError := @Error;
-   Register_SSE('/log'); // Feedback-Log to Client
-   Register_SSE('/econnect'); // Conncetor to ecommerce Functions
+   LogStream := Register_SSE('/log'); // Feedback-Log to Client
+   ApiStream := Register_SSE('/eConnect'); // Connect to long running ecommerce Functions
+   // Api-Idea
+   // Get('fncall?a=5&b=10'), immediate Result 200, with Content "text/plain" a "Context-Handle" for ex "8H67sJ"
+   // AddEventListener('8H67sJ'); -> here comes the feedback event:8H67sJ on stream "/eConnect"
 
    CTX := StrictHTTP2Context;
    Path := '/mnt/r/srv/hosts/';
@@ -1357,14 +1362,11 @@ begin
      systemd.Wuff;
      system.write('.');
     end;
-    (*
-    if (LOG_STREAM_ID>0) then
-      if frequently(L,3000) then
-      begin
-        StoreString('data:Menno '+IntToStr(random(100))+' !',LOG_STREAM_ID);
-        write;
-      end;
-    *)
+    if frequently(L, 3000) then
+    begin
+     storeSSE(LogStream,'Menno '+IntToStr(random(100))+'!');
+     write;
+    end;
     if ConnectionDropped then
     begin
       if not(GoAway) then
