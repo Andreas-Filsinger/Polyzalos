@@ -39,7 +39,9 @@ unit HTTP2;
 interface
 
 uses
-  cTypes, Classes, SysUtils, unicodedata,
+  cTypes,
+  Classes,
+  unicodedata,
 
   // imp pend: use utf8 Strings for SSE
   { LazUTF8, }
@@ -324,7 +326,9 @@ function getSocket: cint;
 implementation
 
 uses
- Unix, Sockets, FileUtil, Math,
+ Sockets,
+ Math,
+ SysUtils,
 
  fpchelper, systemd;
 
@@ -379,6 +383,9 @@ type
 
 type
    // RFC: 6. Frame Definition
+
+   { THTTP2_FRAME }
+
    THTTP2_FRAME = Packed record
      Len : TNum24Bit;     // 0..SETTINGS_MAX_FRAME_SIZE
      Typ : Byte;          // FRAME_TYPE_DATA..FRAME_TYPE_CONTINUATION
@@ -386,6 +393,9 @@ type
      Stream_ID : TNum31Bit; // 0,2,4..2147483648  even-numbered on server-side-created
 
      function asString : RawByteString;
+     function getStream_ID : Integer;
+     procedure setStream_ID (i: Integer);
+     Property asInteger : Integer read getStream_ID write setStream_ID;
    end;
    PHTTP2_FRAME_HEADER = ^THTTP2_FRAME;
 
@@ -672,6 +682,16 @@ function THTTP2_FRAME.asString: RawByteString;
 begin
   SetLength(result,sizeof(THTTP2_FRAME));
   move(Len,result[1],sizeof(THTTP2_FRAME));
+end;
+
+function THTTP2_FRAME.getStream_ID: Integer;
+begin
+  result := Cardinal(Stream_ID);
+end;
+
+procedure THTTP2_FRAME.setStream_ID(i: Integer);
+begin
+ Stream_ID := Cardinal(i);
 end;
 
 { THTTP2_Stream }
@@ -2115,7 +2135,7 @@ begin
  begin
    Typ := FRAME_TYPE_DATA;
    Stream_ID := ID;
-   Len := length(S)+2;
+   Len := length(S) + 2;
    Flags := FLAG_CONTINUE;
  end;
 
@@ -2125,7 +2145,7 @@ begin
 
  (*
 
-  Server-sent events (SSE), Format of raw Message-Blocks send to client (No need for a Header at 2nd Message)
+  Server-sent events (SSE), Format of raw Message-Blocks send to client (No need for a Header after initial Message)
 
   https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
 
@@ -2238,6 +2258,7 @@ begin
 
   // last line
   body.add('id:'+IntToStr(Event_ID)+LineEnding);
+
 
 
  end;
