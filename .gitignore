@@ -7,3 +7,10 @@ Polyzalos.lps
 # App
 #
 Polyzalos
+
+#
+# Lazarus
+#
+lib
+backup
+
