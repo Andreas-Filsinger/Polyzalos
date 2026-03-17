@@ -11,6 +11,6 @@ Polyzalos
 #
 # Lazarus
 #
-lib
-backup
+lib/
+backup/
 
