@@ -1271,9 +1271,21 @@ begin
     begin
 
 
-      rearString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
-      rearString('event:notice'+#$0A+'data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
-      rearString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      //LOG_STREAM_ID := ID;
+      with HEADERS_OUT do
+      begin
+        clear;
+        add(':status=200');
+        add('content-type=text/event-stream');
+        add('cache-control=no-cache');
+        add('connection=keep-alive');
+        encode;
+      end;
+      store(r_Header(ID));
+      storeString('retry:4500', ID);
+      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      storeString('event:notice'+#$0A+'data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
       write;
 
       break;
@@ -1293,7 +1305,7 @@ begin
    encode;
   end;
   store(r_Header(ID));
-  rearFile(RequestedResourceName,ID);
+  storeFile(RequestedResourceName,ID);
   write;
 
  until yet;
@@ -1335,7 +1347,6 @@ begin
    OnError := @Error;
    LogStream := Register_SSE('/log'); // Feedback-Log to Client
    ApiStream := Register_SSE('/eConnect'); // Connect to long running ecommerce Functions
-
    // Api-Idea
    // Get('fncall?a=5&b=10'), immediate Result 200, with Content "text/plain" a "Context-Handle" for ex "8H67sJ"
    // AddEventListener('8H67sJ'); -> here comes the feedback event:8H67sJ on stream "/eConnect"
