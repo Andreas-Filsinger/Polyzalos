@@ -1282,10 +1282,10 @@ begin
         encode;
       end;
       store(r_Header(ID));
-      storeString('retry:4500', ID);
-      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
-      storeString('event:notice'+#$0A+'data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
-      storeString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      rearString('retry:4500', ID);
+      rearString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      rearString('event:notice'+#$0A+'data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
+      rearString('data:Polyzalos Rev. ' + RevToStr(globals.version), ID);
       write;
 
       break;
@@ -1305,7 +1305,7 @@ begin
    encode;
   end;
   store(r_Header(ID));
-  storeFile(RequestedResourceName,ID);
+  rearFile(RequestedResourceName,ID);
   write;
 
  until yet;

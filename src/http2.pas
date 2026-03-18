@@ -169,6 +169,9 @@ Type
    // URL: string (stored url wich initiated the connection)
    url : string;
 
+   // Header-Send, true if the server did sent the inital HEADER
+   HeaderWasSent : boolean;
+
    // to messure stability of a SSE Connection
    uptick : QWord;
 
@@ -279,20 +282,18 @@ Type
        function r_DATA(ID: Integer; Content: RawByteString) : RawByteString;
        function r_GOAWAY: RawByteString;
 
-       // prepare data for client
+       // prepare data for client (do NOT end the stream)
        procedure store(buf: Pointer; num: int64); overload;
        procedure store(const R: RawByteString); overload;
-       procedure storeFile(FName:string; ID:Integer);
-       procedure storeString(S: RawByteString; ID:Integer);
-
-       // prepare events for client
        procedure storeSSE(SSES: TSSE_Stream; Data: TStringList; Event: UTF8String = ''); overload;
        procedure storeSSE(SSES: TSSE_Stream; Data: String; Event: UTF8String = ''); overload;
 
+       // prepare data for client (END the stream)
+       procedure rearFile(FName:string; ID:Integer);
+       procedure rearString(S: RawByteString; ID:Integer);
 
-       // send data to client
+       // send prepeared (store*,rear*) data to client
        procedure write;
-
 
        // Data-Tools
        procedure debug(D: RawByteString);
@@ -1999,7 +2000,7 @@ begin
  Storage_Load := 0;
 end;
 
-procedure THTTP2_Connection.storeFile(FName: string; ID: Integer);
+procedure THTTP2_Connection.rearFile(FName: string; ID: Integer);
 var
  fd : THandle;
  Size, FragmentLen : Int64;
@@ -2041,7 +2042,7 @@ begin
    // imp pend B: das weitere Schreiben in die Verbindung wird ausgesetzt mit einem
    // TimeOut? (oder ohne Timeout) - wenn vor dem TimeOut nicht ein WINDOW_UPDATE kommt, der Schreiben
    // wieder zulässt, kann man den Stream wegwerfen
-   //  push(dieses storeFile einfach auf später verschieben - nach einem WINDOW_UPDATE)
+   //  push(dieses rearFile einfach auf später verschieben - nach einem WINDOW_UPDATE)
 
    DoLog := true;
    LogRW(false);
@@ -2111,7 +2112,7 @@ begin
  end;
 end;
 
-procedure THTTP2_Connection.storeString(S: RawByteString; ID: Integer);
+procedure THTTP2_Connection.rearString(S: RawByteString; ID: Integer);
 var
   FRAME: THTTP2_FRAME;
   STREAM: THTTP2_Stream;
@@ -2137,7 +2138,7 @@ begin
    Typ := FRAME_TYPE_DATA;
    Stream_ID := ID;
    Len := length(S) + 2;
-   Flags := FLAG_CONTINUE;
+   Flags := FLAG_END_STREAM;
  end;
 
  store(@FRAME,SizeOf_FRAME);
@@ -2172,6 +2173,7 @@ procedure THTTP2_Connection.storeSSE(SSES: TSSE_Stream; Data: TStringList;
 var
  body : TStringList;
  i : Integer;
+ FRAME: THTTP2_FRAME;
 
  lAutomataState: Word;
  NUMBER_OF_ITERATIONS, UPPER_BOUND: Integer;
@@ -2194,6 +2196,22 @@ begin
  with SSES do
  begin
   body := TStringList.Create;
+
+  if not(HeaderWasSent) then
+    begin
+      with HEADERS_OUT do
+      begin
+        clear;
+        add(':status=200');
+        add('content-type=text/event-stream');
+        add('cache-control=no-cache');
+        add('connection=keep-alive');
+        encode;
+      end;
+      store(r_Header(Stream.ID));
+      body.add('retry:4500');
+      HeaderWasSent := true;
+    end;
 
   // 1) do work left over
   if (Future.Count>0) then
@@ -2261,16 +2279,33 @@ begin
   // last line
   body.add('id:'+IntToStr(Event_ID)+LineEnding);
 
+  DoLog := true;
+  LogRW(false);
+  Log('FRAME_DATA');
+  DoLog := false;
 
+  with FRAME do
+  begin
+    Typ := FRAME_TYPE_DATA;
+    Stream_ID := Stream.ID;
+    Len := length(body.Text);
+    Flags := FLAG_CONTINUE;
+  end;
 
+  store(@FRAME,SizeOf_FRAME);
+  store(body.Text);
  end;
-
 end;
 
 procedure THTTP2_Connection.storeSSE(SSES: TSSE_Stream; Data: String;
   Event: UTF8String = '');
+var
+ _Data : TStringList;
 begin
-
+ _Data := TStringList.create;
+ _Data.add(Data);
+ storeSSE(SSES, _Data, Event);
+ FreeAndNil(_Data);
 end;
 
 procedure THTTP2_Connection.debug(D: RawByteString);
