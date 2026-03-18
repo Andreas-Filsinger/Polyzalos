@@ -216,7 +216,7 @@ Type
      SETTINGS : THTTP2_Settings;
 
      // Streams
-     Streams: TList; // THTTP2_Stream, TSSE_Stream
+     Streams: TList; // of THTTP2_Stream
      LOCAL_STREAM_ID: Integer; // even, initiated by me
      REMOTE_STREAM_ID: Integer; // odd, initiated by remote
 
@@ -239,7 +239,7 @@ Type
      Storage_Load: int64;
      window_size: Integer;  // cability of the remote
 
-     // Server-sent events (SSE)
+     // Server-sent events (SSE) list of registered urls
      SSE_urls : TStringList;
 
      public
@@ -1196,26 +1196,32 @@ begin
               // Is this already known?
               if (i<>-1) then
               begin
-                if assigned(SSE_urls.Objects[i]) then
+                SSEs := TSSE_Stream(SSE_urls.Objects[i]);
+                with SSEs do
                 begin
-                  // reconnect
-                 SSEs := TSSE_Stream(SSE_urls.Objects[i]);
-                end else
-                begin
-                  // fresh connect
-                  SSEs := TSSE_Stream.create;
-                  with SSEs do
+                  if assigned(Stream) then
                   begin
-                    stream := THTTP2_Stream.indexByID(Streams,Integer(Stream_ID));
-                    if (stream=nil) then
-                    begin
-                     Log('ERROR: Stream ' + IntToStr(Integer(Stream_ID))+ ' is unknown');
-                     FatalError := true;
-                     break;
-                    end;
+                    // Error: a known stream? not possible
+                   Log('ERROR: Stream ' + IntToStr(Integer(Stream_ID))+ ' already in use?');
+                   FatalError := true;
+                   break;
+                  end else
+                  begin
+                   S := THTTP2_Stream.Create;
+                   with S do
+                   begin
+                    ID := Cardinal(Stream_ID);
+                    //dependency:= Cardinal(Stream_Dependency);
+                    weight := Weight;
+                   end;
+                   Streams.add(S);
+                   Stream := S;
                   end;
-                  SSE_urls.Objects[i] := SSEs;
                 end;
+                break;
+              end else
+              begin
+                // imp pend: autocreate a unregistered SSE connection?
               end;
             end;
 
@@ -1616,16 +1622,19 @@ begin
  FSSL := SSL;
  FreeOnTerminate := True;
  SSL_ERROR := TSSL_ERRORQ.Create(1024);
- NOISE :=  TNoiseQ.Create(1024);
+ NOISE := TNoiseQ.Create(1024);
 end;
 
 { TSSE_Stream }
 
 constructor TSSE_Stream.Create;
 begin
+  inherited Create;
   Stream := nil;
   Backup := TStringList.Create;
   Future := TStringList.Create;
+  HeaderWasSent := false;
+  Event_ID := 0;
 end;
 
 type
@@ -1938,6 +1947,7 @@ begin
   if (i=-1) then
   begin
     result := TSSE_Stream.Create;
+    result.url := url;
     SSE_urls.AddObject(url, result);
   end
   else
@@ -1948,13 +1958,13 @@ end;
 
 procedure THTTP2_Connection.Close_SSE(S: TSSE_Stream);
 begin
-
+ // imp pend: send close event, the client makes the close!
 end;
 
 procedure THTTP2_Connection.write;
 var
- BytesToSend, TotalBytesWritten,written: int64;
- SSL_Result, SSL_Error, SSL_Rounds : cint;
+ BytesToSend, TotalBytesWritten, written: int64;
+ SSL_Result, SSL_Error, SSL_Rounds: cint;
  buf: Pointer;
 begin
  // nothing to send
