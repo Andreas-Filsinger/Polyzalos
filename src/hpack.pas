@@ -138,7 +138,7 @@ type
 
     procedure set_MAXIMUM_TABLE_SIZE(Size: int64 = DEFAULT_MAXIMUM_TABLE_SIZE);
 
-    procedure Save(Stream:TStream);
+    procedure Save(Stream: TStream);
     procedure Decode; // Wire -> Header-Strings
     procedure Encode; // Header-Strings -> Wire
 
@@ -161,7 +161,7 @@ uses
 const
  // RFC: Appendix A.  Static Table Definition
  STATIC_TABLE : array[0..61] of RawByteString = (
-        { 00 } 'orgamon.org',
+        { 00 } ':polyzalos', // unused, just a filler
         { 01 } ':authority',
         { 02 } ':method=GET',
         { 03 } ':method=POST',
@@ -2648,7 +2648,7 @@ end;
 class function THPACK.Server: string;
 begin
   // ..\..\rev\polyzalos.rev.txt
-  result := 'Polyzalos/9.002';
+  result := 'Polyzalos/9.005';
 end;
 
 end.

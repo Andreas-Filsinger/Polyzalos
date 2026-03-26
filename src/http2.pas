@@ -607,19 +607,19 @@ end;
 
 procedure LogRW(Read:boolean);
 begin
- if DoLog then
- begin
+// if DoLog then
+// begin
   if Read then
   begin
    write(console_green);
-   write('↓'); // 🡇 🡓 ⍖ 🞃
+   write('🡇'); // 🡇 🡓 ⍖ 🞃 ↓
   end else
   begin
    write(console_red);
-   write('↑'); // 🡅 🡑 ⍏ 🞁
+   write('🡅'); // 🡅 🡑 ⍏ 🞁 ↑
   end;
   write(console_white);
- end;
+// end;
 end;
 
 function FlagName(SingleFlag:byte):string;
@@ -1099,18 +1099,6 @@ begin
           if (Cardinal(Stream_ID)>REMOTE_STREAM_ID) then
             REMOTE_STREAM_ID := Cardinal(Stream_ID);
 
-         {
-         // sample: how to debug a frame
-         if (Typ=FRAME_TYPE_WINDOW_UPDATE) then
-         begin
-          DoLog := true;
-          SetLength(D,SizeOf_FRAME+Cardinal(Len));
-          move(ClientNoise[CN_pos],D[1],SizeOf_FRAME+Cardinal(Len));
-          Log(THPACK.RawByteStringToHexStr(D));
-          DoLog := false;
-         end;
-         }
-
          inc(CN_Pos,SizeOf_FRAME);
          CN_Pos2 := CN_pos;
 
@@ -1180,7 +1168,6 @@ begin
              Wire := H;
              Decode;
             end;
-
 
             R := TStringList.create;
             R.AddStrings(HEADERS_IN);
@@ -1302,7 +1289,6 @@ begin
               if (Flags and FLAG_ACK>0) then
               begin
 
-                Log('***SETTINGS ACK***');
                 if (Cardinal(Len)>0) then
                 begin
                   Log(' ERROR "SETTINGS ACK" can not have Payload');
@@ -1346,7 +1332,7 @@ begin
                        end;
                     end;
                   end;
-                  inc(CN_Pos2,SizeOf_SETTINGS);
+                  inc(CN_Pos2, SizeOf_SETTINGS);
                 end;
 
                 store(r_SETTINGS_ACK);
@@ -1436,7 +1422,25 @@ begin
             // RFC 5.2. Flow Control
             // =====================
             //
-            // coders additions:
+            // coders additions (because i didn't understand RFC):
+            //
+            // WINDOW_UPDATE is a shout-out-frame of a receiver, it motivates
+            // the sender to send more data, and not stop due size-limitations.
+            //
+            // on the sender-side there exists byte-counters manipulated by sizeof(DATA)
+            // a sender already written to a receiver. One global counter (Stream "0"), and
+            // one per Stream. So only raw FRAME_DATA-Content decreases the counters. Not
+            // the protocol overhead like FRAMES and HEADERS.
+            // byte-counters becoming Zero or Negative will stop the sender sending
+            // (Stream is half closed?!) and waiting for WINDOW_UPDATE
+
+            // a receiver who already processed some data and so it is ready for more
+            // can send WINDOW_UPDATE to signal the server she can send more data
+            // used for stream "0" and for individual streams
+            // this flow control was invented to prevent fast senders from overwhelming
+            // slow receivers.
+            // Sends WINDOW_UPDATE frames as data is consumed
+            //
             //
             // a gentle sender is not allowed to send more octets
             // than RemoteSettings.INITIAL_WINDOW_SIZE. Therefore he
@@ -1446,21 +1450,25 @@ begin
             // more Data. The remote must assemble and send a WINDOW_UPDATE-Frame
             // wich contains a diff-value telling the sender to INCREASE the
             // budget by this value.
-            // So "WINDOW_UPDATE" is a message from a remote to
-            // the flow control system of the local. It tells you
-            // how many bytes the remote is ready to receive.
+            // So "WINDOW_UPDATE" is a message from a receiver to
+            // the flow control system of the sender. It tells the sender
+            // how many bytes the receiver is ready to receive.
+            //
+            // Imagine YOU stream a 3 Hour Video (send with many small DATA-Frames)
+            // sometime you will receive a WINDOW_UPDATE helping to
+            // continue sending till the end.
             //
             // 000004 08 F=00 00000000 00EF0001
 
             if (Cardinal(Len)<>SizeOf_WINDOW_UPDATE) then
-             begin
-               Log('ERROR: multible unsupported');
-               FatalError := true;
-               break;
-             end;
+            begin
+              Log('ERROR: multible unsupported');
+              FatalError := true;
+              break;
+            end;
 
-             ID := Cardinal(Stream_ID);
-             WINDOW_SIZE_INCREMENT := Cardinal(PFRAME_WINDOW_UPDATE(@ClientNoise[CN_Pos2])^.Window_Size_Increment);
+            ID := Cardinal(Stream_ID);
+            WINDOW_SIZE_INCREMENT := Cardinal(PFRAME_WINDOW_UPDATE(@ClientNoise[CN_Pos2])^.Window_Size_Increment);
 
             // RFC 6.9: Range 1..
             if (WINDOW_SIZE_INCREMENT<=0) or (WINDOW_SIZE_INCREMENT>MAX_WINDOW_SIZE_INCREMENT) then
@@ -1521,7 +1529,7 @@ begin
            Log('INFO: skip unknown FRAME 0x' + IntToHex( Typ,2)+ '- waiting for implementation ...');
 
          end;
-         inc(CN_Pos,Cardinal(Len));
+         inc(CN_Pos, Cardinal(Len));
 
       end;
 
@@ -1967,9 +1975,10 @@ var
  SSL_Result, SSL_Error, SSL_Rounds: cint;
  buf: Pointer;
 begin
- // nothing to send
+ // nothing to send?
  if (Storage_Load=0) then
   exit;
+
  BytesToSend := Storage_Load;
  TotalBytesWritten := 0;
  SSL_Rounds := 0;
@@ -2371,11 +2380,15 @@ end;
 procedure THTTP2_Connection.Noise;
 var
   D: RawByteString;
+  L: Integer;
 begin
  if Reader.NOISE.dequeue(D) then
  begin
   ConnectionLastNoise := frequently;
-  Log('Have '+IntToStr(length(D))+' Byte(s) of Incoming Data');
+  L := Length(D);
+  LogRW(true);
+  Log(IntToStr(L)+' Byte(s)');
+  Log(' '+THPACK.RawByteStringToHexStr(D));
   enqueue(D);
  end;
 end;

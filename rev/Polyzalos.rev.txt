@@ -15,7 +15,12 @@ Dokumentation
 
 @<a href="https://wiki.orgamon.org/"><font color="blue">Weblink: Onlinedokumentation "OrgaMon"</font></a href>
 
-Rev 9.005 (work in progress) Andreas Filsinger
+Rev 9.006 (.03.2026) Andreas Filsinger
+
+ Neu: Reconnect eines SSE,
+ Neu: verbesserte Liste der aktiven Streams
+
+Rev 9.005 (18.03.2026) Andreas Filsinger
 
  Neu: Registrierung von erwünschten Server-sent events (SSE) Streams
 
