@@ -272,6 +272,7 @@ Type
        procedure ParserSave;
        procedure SaveRawBytes(B: RawByteString; FName: string);
        procedure LoadRawBytes(FName: string);
+       procedure LoadHexStrings(FName: string);
 
        // FRAMES
        function r_PING(PayLoad : RawByteString; AsEcho: boolean = false) : RawByteString;
@@ -996,6 +997,27 @@ begin
  CloseFile(F);
  CN_Pos := 0;
  CN_Size := R;
+end;
+
+procedure THTTP2_Connection.LoadHexStrings(FName: string);
+var
+ S : TStringList;
+ n : Integer;
+ D : RawByteString;
+begin
+ s := TStringList.create;
+ s.LoadFromFile(FName);
+ for n := 0 to pred(S.count) do
+ begin
+   D := THPACK.HexStrToRawByteString(S[n]);
+   CN_Size := length(D);
+   move(D[1], ClientNoise, CN_Size);
+   CN_Pos := 0;
+   Log('{ ' + IntToStr(CN_Size));
+   Parse;
+   Log(IntToStr(CN_Pos)+'/'+IntToStr(CN_Size)+' }');
+ end;
+ S.Free;
 end;
 
 procedure THTTP2_Connection.Parse;
@@ -1976,7 +1998,7 @@ var
  buf: Pointer;
 begin
  // nothing to send?
- if (Storage_Load=0) then
+ if (Storage_Load=0) or (ConnectionDropped) then
   exit;
 
  BytesToSend := Storage_Load;
@@ -2352,6 +2374,7 @@ procedure THTTP2_Connection.enqueue(D: RawByteString);
 var
  CN_NewBlockSize: Integer;
 begin
+ AppendStringsToFile(THPACK.RawByteStringToHexStr(D),'/mnt/r/srv/hosts/r.txt');
  CN_NewBlockSize := length(D);
  if (CN_Size+CN_NewBlockSize<sizeof(TNoiseContainer)) then
  begin

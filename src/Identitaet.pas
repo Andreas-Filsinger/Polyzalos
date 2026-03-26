@@ -1318,6 +1318,19 @@ begin
 
 end;
 
+
+procedure TestParser;
+var
+   C : THTTP2_Connection;
+begin
+ C := THTTP2_Connection.create;
+ with C do
+ begin
+   LoadHexStrings('/mnt/r/srv/hosts/r.txt');
+ end;
+ C.free;
+end;
+
 var
   HTTPS: THTTPS;
 
@@ -1327,8 +1340,7 @@ var
  n: integer;
  FD: longint;
  T,L: LongWord;
- LogStream : TSSE_Stream;
- ApiStream : TSSE_Stream;
+ LogStream, ApiStream : TSSE_Stream;
 begin
  // Prepare
  s := e_r_BasePlug;
@@ -1339,6 +1351,7 @@ begin
  writeln(cryptossl.Version);
  T := frequently;
  L := T;
+ TestParser;
  HTTPS := THTTPS.create;
  with HTTPS do
  begin
