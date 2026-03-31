@@ -1258,16 +1258,9 @@ var
   cINDEX: TdboCursor;
   FTP: TSolidFTP;
 
-  {$ifdef FPC}
   svcBackup: TIBXBackupService;
   svcRestore: TIBXRestoreService;
   rCONNECTION: TZConnection;
-  {$else}
-  rCONNECTION: TIB_Connection;
-  rTRANSACTION: TIB_Transaction;
-  svcBackup: TIBOBackupService;
-  svcRestore: TIBORestoreService;
-  {$endif}
   GenName: string;
   GenValIst: int64;
   GenValSoll: int64;
@@ -1291,11 +1284,7 @@ var
     end;
   end;
 
-  {$ifndef FPC}
-  procedure SetUpService(dbService: TIBOBackupRestoreService);
-  {$else}
   procedure SetUpService(dbService: TIBXBackupRestoreService);
-  {$endif}
   begin
     with dbService do
     begin
@@ -1470,10 +1459,8 @@ var
   end;
 
   procedure DoCheckGenerators;
-{$ifdef FPC}
 var
   rGEN: TZSequence;
-{$endif}
   begin
     Log('#########################');
     Log('# G E N - C O M P A R E #');
@@ -1481,7 +1468,6 @@ var
 
     try
         // Verbindung mit der frisch erstellten Datenbank
-        {$ifdef FPC}
 
         rCONNECTION := TZConnection.Create(nil);
         with rCONNECTION do
@@ -1498,48 +1484,10 @@ var
           connect;
         end;
 
-        {$else}
-
-        rTRANSACTION := TIB_Transaction.Create(nil);
-        with rTRANSACTION do
-        begin
-          Isolation := tiCommitted;
-          AutoCommit := True;
-          ReadOnly := True;
-        end;
-
-        rCONNECTION := TIB_Connection.Create(nil);
-        with rCONNECTION do
-        begin
-          DefaultTransaction := rTRANSACTION;
-          LoginDBReadOnly := True;
-          Protocol := cpTCP_IP;
-          if (i_c_DataBaseHost = '') then
-            DatabaseName := fbak_Full_FName + '.fdb'
-          else
-            DatabaseName := i_c_DataBaseHost + ':' + fbak_Full_FName + '.fdb';
-          UserName := 'SYSDBA';
-          Password := deCrypt_Hex(iDataBasePassword);
-        end;
-
-        with rTRANSACTION do
-        begin
-          IB_Connection := rCONNECTION;
-        end;
-
-        rCONNECTION.connect;
-
-        {$endif}
-
       cGENERATORS := nCursor;
       with cGENERATORS do
       begin
-          {$ifdef FPC}
           connection := rCONNECTION;
-          {$else}
-          IB_Connection := rCONNECTION;
-          IB_Transaction := rTRANSACTION;
-          {$endif}
         sql.add(cScript_List_Generators);
         ApiFirst;
         if (RecordCount <> sGENERATORS.Count) then
@@ -1548,18 +1496,14 @@ var
         while not (EOF) do
         begin
           GenName := Fields[0].AsString;
-            {$ifdef FPC}
-              rGEN := TZSequence.create(nil);
-              with rGEN do
-              begin
-                connection := rCONNECTION;
-                SequenceName := GenName;
-                GenValIst := GetCurrentValue;
-              end;
-              rGEN.free;
-            {$else}
-          GenValIst := GEN_ID(GenName, 0);
-            {$endif}
+          rGEN := TZSequence.create(nil);
+          with rGEN do
+          begin
+            connection := rCONNECTION;
+            SequenceName := GenName;
+            GenValIst := GetCurrentValue;
+          end;
+          rGEN.free;
           GenValSoll := strtoint64def(sGENERATORS.values[GenName], 0);
           if (GenValIst >= GenValSoll) then
           begin
@@ -1579,12 +1523,7 @@ var
       cINDEX := nCursor;
       with cINDEX do
       begin
-          {$ifdef FPC}
-          connection := rConnection;
-          {$else}
-        IB_Connection := rCONNECTION;
-        IB_Transaction := rTRANSACTION;
-          {$endif}
+        connection := rConnection;
         sql.add('SELECT');
         sql.add(' RDB$INDICES.RDB$RELATION_NAME,');
         sql.add(' RDB$INDICES.RDB$INDEX_NAME,');
@@ -1694,13 +1633,8 @@ begin
       if (ErrorCount > 0) then
         break;
 
-      {$ifdef FPC}
       svcBackup := TIBXBackupService.Create(nil);
       svcRestore := TIBXRestoreService.Create(nil);
-      {$else}
-      svcBackup := TIBOBackupService.Create(nil);
-      svcRestore := TIBORestoreService.Create(nil);
-      {$endif}
 
       SetUpService(svcBackup);
       SetUpService(svcRestore);

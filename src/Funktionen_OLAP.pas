@@ -581,24 +581,15 @@ var
         excelFormats.values[cExcel_TabellenName] := getValueofParameter('$Skript');
     end;
 
-    {$ifdef fpc}
     // als ODS ausgeben
     ExcelExport(RohdatenxlsFName(RohdatenCount), BigJoin, nil, excelFormats, pODS);
-    {$else}
-    // als Excel ausgeben
-    ExcelExport(RohdatenxlsFName(RohdatenCount), BigJoin, nil, excelFormats, pXLS);
-    {$endif}
 
     // wegkopieren?
     SaveCopy(RohdatenxlsFName(RohdatenCount));
 
     // als PDF ausgeben
     if (getValueofParameter('$AuchAlsPDF') = cIni_Activate) then
-      {$ifdef fpc}
       if (pODS = nil) then
-      {$else}
-      if (pXLS = nil) then
-      {$endif}
       begin
         MakePDF(RohdatenxlsFName(RohdatenCount), RohdatenxlsFName(RohdatenCount) + cPDF_Extension);
 

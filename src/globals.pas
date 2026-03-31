@@ -47,7 +47,7 @@ uses
 const
   cApplicationNamePre = 'OrgaMon'; // CRYPT-KEY! - never Change a bit!!!
   cApplicationName = 'Polyzalos';
-  Version: single = 9.005; // ../rev/Polyzalos.rev.txt
+  Version: single = 9.006; // sync "../rev/Polyzalos.rev.txt", sync "../src/HPACK.pas:2651"
 
   // Mindest-Versions-Anforderungen an die Client-App
   cMinVersion_OrgaMonApp: single = 2.045;

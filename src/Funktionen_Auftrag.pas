@@ -8831,12 +8831,6 @@ var
   FreieZaehlerCol_Sparte: integer;
   FreieZaehlerCol_Obis: integer;
 
-  {$ifdef fpc}
-  {$else}
-  // Excel-Ausgabe
-  FlexCelXLS: TXLSFile;
-  {$endif}
-
   // Excel-Formate
   // Dinge für Protokoll-Text Feld
   fmProtokollText: integer;

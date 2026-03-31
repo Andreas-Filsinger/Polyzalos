@@ -495,7 +495,6 @@ begin
         begin
           if not(IsNull) then
           begin
-{$ifdef fpc}
  case DataType of
    ftFloat,ftCurrency:Infostr := Infostr + format('%.2f', [AsCurrency]);
    ftSmallint,ftWord,ftInteger: Infostr := Infostr + inttostr(AsInteger);
@@ -516,60 +515,6 @@ begin
                ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
                ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
    *)
-{$else}
-           case SQLType of
-           SQL_DOUBLE, SQL_DOUBLE_:
-                Infostr := Infostr + format('%.2f', [AsDouble]);
-
-              SQL_INT64, SQL_INT64_:
-                Infostr := Infostr + inttostr(AsInt64);
-
-              SQL_SHORT, SQL_SHORT_, SQL_LONG, SQL_LONG_:
-                Infostr := Infostr + inttostr(AsInteger);
-
-              SQL_VARYING, SQL_VARYING_, SQL_TEXT, SQL_TEXT_:
-                begin
-                  DB_text := AsString;
-                  ersetze(#13, '', DB_text);
-                  ersetze(#10, '', DB_text);
-                  ersetze('"', '''', DB_text);
-                  Infostr := Infostr + '"' + DB_text + '"';
-                end;
-
-              SQL_BLOB, SQL_BLOB_:
-                begin
-                  // if SubType = isc_blob_text
-                  DB_text := '';
-                  AssignTo(DB_memo);
-                  for m := 0 to pred(DB_memo.count) do
-                    if (m = 0) then
-                      DB_text := DB_memo[0]
-                    else
-                      DB_text := DB_text + '|' + DB_memo[m];
-                  ersetze('"', '''', DB_text);
-                  Infostr := Infostr + '"' + DB_text + '"';
-                end;
-
-              SQL_TIMESTAMP, SQL_TIMESTAMP_:
-                begin
-                  Infostr := Infostr + long2date(DateTime2Long(AsDateTime)) + ' ' +
-                    secondstostr(DateTime2seconds(AsDateTime));
-                end;
-
-              SQL_TYPE_DATE, SQL_TYPE_DATE_:
-                begin
-                  Infostr := Infostr + long2date(DateTime2Long(AsDateTime));
-                end;
-
-              SQL_TYPE_TIME, SQL_TYPE_TIME_:
-                begin
-                  Infostr := Infostr + secondstostr(DateTime2seconds(AsDateTime));
-                end;
-            else
-              Infostr := Infostr + 'SQLType ' + inttostr(SQLType) + ' unbekannt!';
-            end;
-
-           {$endif}
           end
           else
           begin
@@ -978,7 +923,6 @@ begin
 end;
 
 procedure ExportScript(TSql: string; FName: string; Seperator: char = ';'); overload;
-{$IFDEF fpc}
 var
   Ablage: TStringList;
 begin
@@ -990,34 +934,6 @@ begin
   AppendStringsToFile(Ablage, FName);
   Ablage.free;
 end;
-
-{$ELSE}
-
-var
-  cABLAGE: TdboScript;
-  Ablage: TStringList;
-begin
-  FileDelete(FName);
-  Ablage := TStringList.create;
-  cABLAGE := nScript;
-  with cABLAGE do
-  begin
-    sql.add(TSql);
-    dbLog(sql,false);
-    execute;
-
-    // imp pend: hier sollte mal die Anzahl der betroffenen Datensätze
-    // ausgegeben werden!
-
-    Ablage.add('ANZAHL;');
-    Ablage.add('<NULL>;');
-
-  end;
-  AppendStringsToFile(Ablage, FName);
-  cABLAGE.free;
-  Ablage.free;
-end;
-{$ENDIF}
 
 function ListasSQL(i: TgpIntegerList): string; overload;
 var
@@ -1053,7 +969,6 @@ begin
   end;
 end;
 
-{$IFDEF fpc}
 { TdboScript }
 
 function TdboScript.sql: TStrings;
@@ -1090,8 +1005,6 @@ begin
     Open;
   inherited Insert;
 end;
-
-{$ENDIF}
 
 procedure TSQLStringList.ReplaceBlock(BlockName: string; NewLines: string);
 var

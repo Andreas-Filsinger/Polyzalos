@@ -15,10 +15,11 @@ Dokumentation
 
 @<a href="https://wiki.orgamon.org/"><font color="blue">Weblink: Onlinedokumentation "OrgaMon"</font></a href>
 
-Rev 9.006 (.03.2026) Andreas Filsinger
+Rev 9.006 (31.03.2026) Andreas Filsinger
 
- Neu: Reconnect eines SSE,
- Neu: verbesserte Liste der aktiven Streams
+ Bug: "break" in FRAME Processing is bad, because nobody increments the CN_read
+
+ Neu: FastQueue from "When Nanoseconds Matter: Ultrafast Trading Systems in C++ - David Gross - CppCon 2024"
 
 Rev 9.005 (18.03.2026) Andreas Filsinger
 

@@ -257,7 +257,7 @@ const
   {} %00000011,
   {} %00000001);
 
-// RFC : "Appendix B.  Huffman Code"
+// RFC : "Appendix B.  Huffman Code", Values=the-bits, Index=symbol-code
 
 RFC_7541_Appendix_B_Bits : array[0..256] of QWord = (
   $1ff8, $7fffd8, $fffffe2, $fffffe3, $fffffe4, $fffffe5, $fffffe6, $fffffe7,
@@ -2648,7 +2648,7 @@ end;
 class function THPACK.Server: string;
 begin
   // ..\..\rev\polyzalos.rev.txt
-  result := 'Polyzalos/9.005';
+  result := 'Polyzalos/9.006';
 end;
 
 end.

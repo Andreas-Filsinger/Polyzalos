@@ -118,7 +118,7 @@ Type
    constructor Create;
  end;
 
- TNoiseContainer = array[0..pred(16*1024)] of byte;
+ TNoiseContainer = array[0..pred(32*1024)] of byte;
  TNoiseContainerP = ^TNoiseContainer;
 
  TNoiseQ = specialize TPasMPBoundedQueue<RawByteString>;
@@ -224,15 +224,22 @@ Type
      CTX: PSSL_CTX;
      SSL: PSSL;
 
+     // Incoming Data
+     Reader : THTTP2_Reader;
+
      // Parser
      AutomataState : Byte;
      ParseRounds : Integer;
+     ParseRecusion : Boolean;
 
-     // Incoming Data, read-Buffer
-     Reader : THTTP2_Reader;
+     // Read-Buffer "ClientNoise"
+     // [************************]
+     //  ^           ^
+     //  |           |
+     //  CN_Read->   CN_Write->
      ClientNoise : TNoiseContainer;
-     CN_Size: Integer;
-     CN_Pos: Integer; // 0..pred(CN_Size)
+     CN_Read: Integer; // move by Parser
+     CN_Write: Integer; // move by incoming data
 
      // Outgoing-Data, write-Buffer
      Storage : Pointer;
@@ -268,6 +275,7 @@ Type
 
        // Parser
        procedure Parse;
+       procedure IncCN_Read(By:Integer);
        procedure ParserClear;
        procedure ParserSave;
        procedure SaveRawBytes(B: RawByteString; FName: string);
@@ -429,12 +437,12 @@ type
   PFRAME_RST_STREAM = ^TFRAME_RST_STREAM;
 
   // RFC: 6.5 SETTINGS
-  TFRAME_SETTINGS = packed record
+  TFRAME_SETTING = packed record
    SETTING_ID : TNum16Bit;
    Value      : TNum32Bit;
    function asString: RawByteString;
   end;
-  PFRAME_SETTINGS = ^TFRAME_SETTINGS;
+  PFRAME_SETTING = ^TFRAME_SETTING;
 
   // RFC: 6.8. GOAWAY
   TFRAME_GOAWAY = packed record
@@ -453,7 +461,7 @@ type
 
 const
   SizeOf_FRAME = sizeof(THTTP2_FRAME);
-  SizeOf_SETTINGS = sizeof(TFRAME_SETTINGS);
+  SizeOf_SETTING = sizeof(TFRAME_SETTING);
   SizeOf_WINDOW_UPDATE = sizeof(TFRAME_WINDOW_UPDATE);
   SizeOf_GOAWAY = sizeof(TFRAME_GOAWAY);
   SizeOf_Storage = 2*1024*1024;
@@ -674,10 +682,10 @@ end;
 
 { TFRAME_SETTINGS }
 
-function TFRAME_SETTINGS.AsString: RawByteString;
+function TFRAME_SETTING.AsString: RawByteString;
 begin
- setLength(result,sizeof(TFRAME_SETTINGS));
- move(SETTING_ID,result[1],sizeof(TFRAME_SETTINGS));
+ setLength(result,sizeof(TFRAME_SETTING));
+ move(SETTING_ID,result[1],sizeof(TFRAME_SETTING));
 end;
 
 function THTTP2_FRAME.asString: RawByteString;
@@ -780,7 +788,7 @@ var
 
  function add(pSETTING_ID : UInt16;pValue : UInt32): RawByteString;
  var
-  SETTING : TFRAME_SETTINGS;
+  SETTING : TFRAME_SETTING;
  begin
    with SETTING do
    begin
@@ -788,7 +796,7 @@ var
      Value      := pValue;
      result := AsString;
    end;
-   FRAME.Len := Cardinal(FRAME.Len) + sizeof(TFRAME_SETTINGS);
+   FRAME.Len := Cardinal(FRAME.Len) + sizeof(TFRAME_SETTING);
  end;
 
  var
@@ -964,11 +972,12 @@ procedure THTTP2_Connection.ParserSave;
 var
   F: File;
 begin
+ // imp pend
  if (PathToTests<>'') then
  begin
-  AssignFile(F,PathToTests+'incoming-'+inttostr(ParseRounds)+'.http2');
-  rewrite(F,1);
-  blockwrite(F,ClientNoise,CN_Size);
+  AssignFile(F, PathToTests+'incoming-'+inttostr(ParseRounds)+'.http2');
+  rewrite(F, 1);
+  blockwrite(F, ClientNoise, CN_Write);
   CloseFIle(F);
  end;
 end;
@@ -977,9 +986,9 @@ procedure THTTP2_Connection.SaveRawBytes(B: RawByteString; FName: string);
 var
   F: File;
 begin
- AssignFile(F,FName);
- rewrite(F,1);
- blockwrite(F,B[1],length(B));
+ AssignFile(F, FName);
+ rewrite(F, 1);
+ blockwrite(F, B[1], length(B));
  CloseFIle(F);
 end;
 
@@ -993,10 +1002,9 @@ begin
  reset(F,1);
  FSize := FileSize(F);
  R := 0;
- blockread(F,ClientNoise,min(FSize,SizeOf(ClientNoise)),R);
+ blockread(F, ClientNoise[CN_Write], min(FSize, SizeOf(ClientNoise)-CN_Write), R);
+ inc(CN_Write, R);
  CloseFile(F);
- CN_Pos := 0;
- CN_Size := R;
 end;
 
 procedure THTTP2_Connection.LoadHexStrings(FName: string);
@@ -1004,19 +1012,21 @@ var
  S : TStringList;
  n : Integer;
  D : RawByteString;
+ L : Integer;
 begin
  s := TStringList.create;
  s.LoadFromFile(FName);
  for n := 0 to pred(S.count) do
  begin
    D := THPACK.HexStrToRawByteString(S[n]);
-   CN_Size := length(D);
-   move(D[1], ClientNoise, CN_Size);
-   CN_Pos := 0;
-   Log('{ ' + IntToStr(CN_Size));
+   L := length(D);
+   move(D[1], ClientNoise[CN_Write], L);
+   inc(CN_Write, L);
+   Log('{ ' + IntToStr(L)+' ['+IntToStr(CN_Read)+'****'+IntToStr(CN_Write)+']');
    Parse;
-   Log(IntToStr(CN_Pos)+'/'+IntToStr(CN_Size)+' }');
+   Log(IntToStr(CN_Read)+'/'+IntToStr(CN_Write)+' }');
  end;
+ Log(IntToStr(ParseRounds)+' rounds');
  S.Free;
 end;
 
@@ -1024,7 +1034,7 @@ procedure THTTP2_Connection.Parse;
 
   function Size_Unparsed : Integer;
   begin
-   result := CN_Size - CN_Pos;
+   result := CN_Write - CN_Read;
   end;
 
 var
@@ -1046,10 +1056,17 @@ var
   SSEs : TSSE_Stream;
 
 begin
+ if ParseRecusion then
+ begin
+  Log('ERROR: Parser do not support recursion');
+  FatalError := true;
+  exit;
+ end;
+ ParseRecusion := true;
  ParserSave;
  repeat
    case AutoMataState of
-    0:begin // just born
+    0:begin // just born, PREFIX - World
 
         if (Size_Unparsed<SizeOf_CLIENT_PREFIX + SizeOf_FRAME) then
          begin
@@ -1062,34 +1079,33 @@ begin
             if (CLIENT_PREFIX[n]<>chr(ClientNoise[pred(n)])) then
              begin
                Log('ERROR: CLIENT_PREFIX expected, create dump for Diag');
-               // imp pend: dump ClientNoise
                FatalError := true;
                break;
              end;
-            inc(CN_pos,SizeOf_CLIENT_PREFIX);
-            inc(AutomataState);
 
+            // We have PREFIX
             DoLog := true;
             LogRW(true);
             Log('CLIENT_PREFIX');
             DoLog := false;
+
+            incCN_Read(SizeOf_CLIENT_PREFIX);
+            inc(AutomataState);
          end;
 
       end;
     1:begin // FRAME - World
 
+       // enough noise holding a FRAME?
        if (Size_Unparsed<SizeOf_FRAME) then
-        begin
-          Log('WARNING: nothing worse to parse - i wait and hope for more Noise ...');
-          // imp pend: delay, read, timeout?
-          break;
-        end;
+         break;
 
-       with PHTTP2_FRAME_HEADER(@ClientNoise[CN_pos])^ do
+       with PHTTP2_FRAME_HEADER(@ClientNoise[CN_Read])^ do
        begin
 
           DoLog := true;
           LogRW(true);
+          Log('@'+IntToStr(CN_Read)+'=');
           // Typ
           repeat
             if (Flags and FLAG_ACK>0) and (Typ=FRAME_TYPE_SETTINGS) then
@@ -1121,8 +1137,9 @@ begin
           if (Cardinal(Stream_ID)>REMOTE_STREAM_ID) then
             REMOTE_STREAM_ID := Cardinal(Stream_ID);
 
-         inc(CN_Pos,SizeOf_FRAME);
-         CN_Pos2 := CN_pos;
+         incCN_Read(SizeOf_FRAME);
+
+         CN_Pos2 := CN_Read;
 
          case Typ of
           FRAME_TYPE_DATA : begin
@@ -1172,7 +1189,6 @@ begin
             begin
              Log('ERROR: Size of Headers>MAX_HEADER_LIST_SIZE');
              FatalError := true;
-             break;
             end;
 
             Log(' HEADER_SIZE '+IntToStr(ContentSize));
@@ -1213,7 +1229,6 @@ begin
                     // Error: a known stream? not possible
                    Log('ERROR: Stream ' + IntToStr(Integer(Stream_ID))+ ' already in use?');
                    FatalError := true;
-                   break;
                   end else
                   begin
                    S := THTTP2_Stream.Create;
@@ -1227,16 +1242,16 @@ begin
                    Stream := S;
                   end;
                 end;
-                break;
               end else
               begin
                 // imp pend: autocreate a unregistered SSE connection?
               end;
+            end else
+            begin
+
+              if assigned(FRequest) then
+               FRequest(R);
             end;
-
-            if assigned(FRequest) then
-             FRequest(R);
-
            end;
 
           FRAME_TYPE_PRIORITY : begin;
@@ -1245,7 +1260,6 @@ begin
             begin
                Log('ERROR: multible unsupported');
                FatalError := true;
-               break;
             end;
 
             with PFRAME_PRIORITY(@ClientNoise[CN_Pos2])^ do
@@ -1288,7 +1302,6 @@ begin
              begin
                Log('ERROR: multible unsupported');
                FatalError := true;
-               break;
              end;
 
             with PFRAME_RST_STREAM(@ClientNoise[CN_Pos2])^ do
@@ -1315,15 +1328,14 @@ begin
                 begin
                   Log(' ERROR "SETTINGS ACK" can not have Payload');
                   FatalError := true;
-                  break;
                 end;
 
               end else
               begin
 
-                for n := 1 to (Cardinal(Len) DIV SizeOf_SETTINGS) do
+                for n := 1 to (Cardinal(Len) DIV SizeOf_SETTING) do
                 begin
-                  with PFRAME_SETTINGS(@ClientNoise[CN_Pos2])^ do
+                  with PFRAME_SETTING(@ClientNoise[CN_Pos2])^ do
                   begin
                     DoLog := true;
                     Log(' '+SETTINGS_NAMES[Cardinal(SETTING_ID)]+' '+IntToStr(Cardinal(Value)));
@@ -1354,7 +1366,7 @@ begin
                        end;
                     end;
                   end;
-                  inc(CN_Pos2, SizeOf_SETTINGS);
+                  inc(CN_Pos2, SizeOf_SETTING);
                 end;
 
                 store(r_SETTINGS_ACK);
@@ -1367,7 +1379,6 @@ begin
 
              Log('ERROR: Servers can not process PUSH_PROMISE frames');
              FatalError := true;
-             break;
 
             end;
           FRAME_TYPE_PING : begin
@@ -1376,14 +1387,12 @@ begin
             begin
                Log('ERROR: PING Len of '+IntToStr(Cardinal(Len)));
                FatalError := true;
-               break;
             end;
 
             if (Cardinal(Stream_ID)<>0) then
             begin
                Log('ERROR: invalid StreamID '+IntToStr(Cardinal(Stream_ID)));
                FatalError := true;
-               break;
             end;
 
             // copy Content
@@ -1410,14 +1419,12 @@ begin
              begin
                Log('ERROR: invalid StreamID<>0');
                FatalError := true;
-               break;
              end;
 
              if (Cardinal(Len)<SizeOf_GOAWAY) then
              begin
                Log('ERROR: unsufficiant GOAWAY FRAME SIZE Payload');
                FatalError := true;
-               break;
              end;
 
              with PFRAME_GOAWAY(@ClientNoise[CN_Pos2])^ do
@@ -1444,7 +1451,7 @@ begin
             // RFC 5.2. Flow Control
             // =====================
             //
-            // coders additions (because i didn't understand RFC):
+            // my own additions as a programmer: (because i didn't understand the RFC):
             //
             // WINDOW_UPDATE is a shout-out-frame of a receiver, it motivates
             // the sender to send more data, and not stop due size-limitations.
@@ -1453,9 +1460,10 @@ begin
             // a sender already written to a receiver. One global counter (Stream "0"), and
             // one per Stream. So only raw FRAME_DATA-Content decreases the counters. Not
             // the protocol overhead like FRAMES and HEADERS.
+            //
             // byte-counters becoming Zero or Negative will stop the sender sending
             // (Stream is half closed?!) and waiting for WINDOW_UPDATE
-
+            //
             // a receiver who already processed some data and so it is ready for more
             // can send WINDOW_UPDATE to signal the server she can send more data
             // used for stream "0" and for individual streams
@@ -1486,7 +1494,6 @@ begin
             begin
               Log('ERROR: multible unsupported');
               FatalError := true;
-              break;
             end;
 
             ID := Cardinal(Stream_ID);
@@ -1497,7 +1504,6 @@ begin
             begin
              Log('ERROR: multible unsupported');
              FatalError := true;
-             break;
             end;
 
             // Search for the Stream
@@ -1542,7 +1548,6 @@ begin
              begin
                Log('ERROR: invalid StreamID 0');
                FatalError := true;
-               break;
              end;
             end;
 
@@ -1550,8 +1555,10 @@ begin
 
            Log('INFO: skip unknown FRAME 0x' + IntToHex( Typ,2)+ '- waiting for implementation ...');
 
-         end;
-         inc(CN_Pos, Cardinal(Len));
+         end; // case FRAME_TYPE
+
+         // at last we processed it
+         incCN_Read(Cardinal(Len));
 
       end;
 
@@ -1559,22 +1566,32 @@ begin
    end;
    if FatalError then
      break;
-   if (Size_Unparsed=0) then
-   begin
-     // flush buffer, restart at the beginning
-     CN_Size := 0;
-     CN_Pos := 0;
-     break;
-   end;
   until false;
   inc(ParseRounds);
+  ParseRecusion := false;
+end;
+
+procedure THTTP2_Connection.IncCN_Read(By: Integer);
+begin
+ Log(' CN_Read+='+IntToStr(By));
+ inc(CN_Read, By);
+ if (CN_Read>CN_Write) then
+ begin
+   Log('ERROR: Parser overrun');
+   FatalError := true;
+ end;
+ if (CN_Read=CN_Write) then
+ begin
+   Log(' Full Noise Parsed!');
+   CN_Read := 0;
+   CN_Write := 0;
+ end;
 end;
 
 procedure THTTP2_Connection.ParserClear;
 begin
  AutomataState := 0;
  FatalError := false;
- CN_Pos := 0;
 end;
 
 { THTTP2_Reader }
@@ -1799,6 +1816,9 @@ begin
   // SSE
   SSE_urls := TStringList.create;
 
+  // Parser
+  ParseRecusion := false;
+
 end;
 
 destructor THTTP2_Connection.Destroy;
@@ -1943,9 +1963,12 @@ begin
      CheckSecurityItem('Mac','AEAD');
 
      // Start the Read Connection Data Thread
+     CN_Read := 0;
+     CN_Write := 0;
      Reader := THTTP2_Reader.Create(SSL);
      Reader.OnNoise:=@Noise;
      Reader.OnSSL_ERROR:=@Error;
+
      writeln('Before Thread-Start');
      Reader.Start;
      writeln('After Thread-Start');
@@ -2372,14 +2395,15 @@ end;
 
 procedure THTTP2_Connection.enqueue(D: RawByteString);
 var
- CN_NewBlockSize: Integer;
+ L: Integer;
 begin
  AppendStringsToFile(THPACK.RawByteStringToHexStr(D),'/mnt/r/srv/hosts/r.txt');
- CN_NewBlockSize := length(D);
- if (CN_Size+CN_NewBlockSize<sizeof(TNoiseContainer)) then
+
+ L := length(D);
+ if (CN_Write + L<sizeof(TNoiseContainer)) then
  begin
-  move(D[1], ClientNoise[CN_Size], CN_NewBlockSize);
-  inc(CN_Size,CN_NewBlockSize);
+  move(D[1], ClientNoise[CN_Write], L);
+  inc(CN_Write, L);
   Parse;
  end else
  begin
@@ -2573,7 +2597,7 @@ begin
  // Check RFC Conditions
  assert(SizeOf_CLIENT_PREFIX=24,'Break of RFC 3.5.');
  assert(SizeOf_FRAME=9,'Break of RFC 4.1.');
- assert(SizeOf_SETTINGS=6,'Break of RFC 6.5.1.');
+ assert(SizeOf_SETTING=6,'Break of RFC 6.5.1.');
  assert(SizeOf_WINDOW_UPDATE=4,'Break of RFC 6.9.');
  assert(length(PING_PAYLOAD)=8,'Break of RFC 6.7.');
  assert(length(cHEADER_FIELD_VALID)=69,'Break of RFC 8.2.1.');
