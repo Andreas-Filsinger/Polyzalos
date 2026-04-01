@@ -15,6 +15,10 @@ Dokumentation
 
 @<a href="https://wiki.orgamon.org/"><font color="blue">Weblink: Onlinedokumentation "OrgaMon"</font></a href>
 
+Rev 9.007 (.04.2026) Andreas Filsinger
+
+
+
 Rev 9.006 (31.03.2026) Andreas Filsinger
 
  Bug: "break" in FRAME Processing is bad, because nobody increments the CN_read

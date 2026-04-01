@@ -1137,9 +1137,19 @@ begin
           if (Cardinal(Stream_ID)>REMOTE_STREAM_ID) then
             REMOTE_STREAM_ID := Cardinal(Stream_ID);
 
-         incCN_Read(SizeOf_FRAME);
 
-         CN_Pos2 := CN_Read;
+         if (Size_unparsed<SizeOf_FRAME+Cardinal(Len)) then
+         begin
+           // not enough data inside read buffer to parse the full FRAME
+           //
+           Log('WARNING: FRAME incomplete in buffer, hope for more data');
+           break;
+         end else
+         begin
+          incCN_Read(SizeOf_FRAME);
+          CN_Pos2 := CN_Read;
+          incCN_Read(Cardinal(Len));
+         end;
 
          case Typ of
           FRAME_TYPE_DATA : begin
@@ -1556,12 +1566,7 @@ begin
            Log('INFO: skip unknown FRAME 0x' + IntToHex( Typ,2)+ '- waiting for implementation ...');
 
          end; // case FRAME_TYPE
-
-         // at last we processed it
-         incCN_Read(Cardinal(Len));
-
       end;
-
     end;
    end;
    if FatalError then
@@ -1573,18 +1578,22 @@ end;
 
 procedure THTTP2_Connection.IncCN_Read(By: Integer);
 begin
- Log(' CN_Read+='+IntToStr(By));
- inc(CN_Read, By);
- if (CN_Read>CN_Write) then
+ if (By>0) then
  begin
-   Log('ERROR: Parser overrun');
-   FatalError := true;
- end;
- if (CN_Read=CN_Write) then
- begin
-   Log(' Full Noise Parsed!');
-   CN_Read := 0;
-   CN_Write := 0;
+   Log(' CN_Read+='+IntToStr(By));
+   inc(CN_Read, By);
+   if (CN_Read>CN_Write) then
+   begin
+     Log('ERROR: Parser overrun');
+     FatalError := true;
+   end;
+   if (CN_Read=CN_Write) then
+   begin
+     Log(' Full Noise Parsed!');
+     // reuse buffer from start
+     CN_Read := 0;
+     CN_Write := 0;
+   end;
  end;
 end;
 
@@ -1865,10 +1874,10 @@ begin
  SSL_CTX_set_options(CTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
 
  // Register a Callback for: "SNI" read Identity Client expects
- SSL_CTX_callback_ctrl(CTX,SSL_CTRL_SET_TLSEXT_SERVERNAME_CB,@cb_SERVERNAME);
+ SSL_CTX_callback_ctrl(CTX, SSL_CTRL_SET_TLSEXT_SERVERNAME_CB, @cb_SERVERNAME);
 
  // Register a Callback for: "ALPN" Select "h2" Protocol
- SSL_CTX_set_alpn_select_cb(CTX,@cb_ALPN,nil);
+ SSL_CTX_set_alpn_select_cb(CTX, @cb_ALPN, nil);
 
  result := CTX;
 end;

@@ -2647,7 +2647,8 @@ end;
 
 class function THPACK.Server: string;
 begin
-  // ..\..\rev\polyzalos.rev.txt
+  // from "..\..\rev\polyzalos.rev.txt"
+  // from "globalas.pas"
   result := 'Polyzalos/9.006';
 end;
 
